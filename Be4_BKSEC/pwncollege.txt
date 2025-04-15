@@ -1,0 +1,325 @@
+Getting Started
+Using the VSCode Workspace
+pwn.college{gbHGxaYwxtiYRBzCJ-2CCwz5FX3.dZjM3MDL2EzNyYzW}
+Using the GUI Desktop
+pwn.college{0Bsr0CR0bd7DODpVYgqP6Hxwgum.ddjM3MDL2EzNyYzW}
+Pasting into the Desktop
+pwn.college{MIJWV6LwmIDfDQhLSJ2-xprGrOC.dhjM3MDL2EzNyYzW}
+Restarting Challenges
+pwn.college{M6TpZ8Cs02qKIQOzCLnIuKItr_Y.dVTOwUDL2EzNyYzW}
+Getting Help
+pwn.college{0-nGD4vn_O02TTWED-qrLxuSwJL.dJjM0UDL2EzNyYzW}
+Challenge Programs
+pwn.college{U8zk8PxXh5Zi6jlPoyepHOWiKPq.dRzM4QDL2EzNyYzW}
+The Flag File
+pwn.college{UapRydU4hAiQ964VBG2C-IZWDaO.dljM3MDL2EzNyYzW}
+Using Pratice Mode
+pwn.college{YbPB90sg40OYrEogaV861b23a85.dBzM3MDL2EzNyYzW}
+Persistent Home Directories - One
+pwn.college{MgQkk46KJHfD79d54ebtZjNQuSM.dFzM3MDL2EzNyYzW}
+Persistent Home Directories - Two
+pwn.college{Mwb4QsRbjs-rYa0ts8iih4XmfMD.dJzM3MDL2EzNyYzW}
+
+Linux Luminarium
+Intro to Commands
+pwn.college{QqBil-DGiNBEokYzFt2h6p8_k6p.ddjNyUDL2EzNyYzW}
+Intro to Arguments
+pwn.college{8qNyOnv18VbQozRTf92nTQX3_uC.dhjNyUDL2EzNyYzW}
+The Root
+pwn.college{M2L-wI9Bg0LW9Gi6mJ2HDLy4dJY.dhzN5QDL2EzNyYzW}
+Program and absolute paths
+pwn.college{4vIKxdwVIdS-gZk_PRrjwlPBtMO.dVDN1QDL2EzNyYzW}
+Position thy self
+pwn.college{QkMvGj0p8UOTMFSeWf-hydEx99_.dZDN1QDL2EzNyYzW}
+Position elsewhere
+pwn.college{gHS6xDE9kptXpU1F2178AKX6GSX.ddDN1QDL2EzNyYzW}
+Position yet elsewhere
+pwn.college{QRHt2q_zAw8YkfSr_AI3geMQY_T.dhDN1QDL2EzNyYzW}
+implicit relative paths, from /
+pwn.college{oC8QKSEtqupAwS-Vnz-4nTRlpW3.dlDN1QDL2EzNyYzW}
+explicit relative paths, from /
+pwn.college{00HB6VO-ifY2lqnebrSqVUSvr66.dBTN1QDL2EzNyYzW}
+implicit relative path
+pwn.college{gWA_H9uopkTZXP0i2xCnkrh0yvX.dFTN1QDL2EzNyYzW}
+home sweet home
+pwn.college{8r8AaZbNetcTNNA7xDaUksmK89B.dNzM4QDL2EzNyYzW}
+cat: not the pet, but the command!
+pwn.college{kQBn5oUXbV4_ujI_1_XoKWYUqci.dFzN1QDL2EzNyYzW}
+catting absolute path
+pwn.college{MdLWulx6BT1bsT2p6vjN_Uy-NN7.dlTM5QDL2EzNyYzW}
+more catting practice
+pwn.college{0VgAuiJOWXzdx5C6bwM-Vwo3E3u.dBjM5QDL2EzNyYzW}
+grepping for a needle in a haystack
+pwn.college{4JuI5VkUlOrC_-cXnoDZNwuxjIi.ddTM4QDL2EzNyYzW}
+listing files
+pwn.college{4U5V0G5r32AMOytLirM95nwSkVF.dhjM4QDL2EzNyYzW}
+touching files
+pwn.college{UJudYe_eoTBfFPGKvLhClza63i1.dBzM4QDL2EzNyYzW}
+removing files
+pwn.college{4FSd4GfSqJ4QDPqGSVXhkfLNgAJ.dZTOwUDL2EzNyYzW}
+hidden files
+pwn.college{4YbBOBmFIcva1P4UpBTrjbG0U09.dBTN4QDL2EzNyYzW}
+An Epic Filesystem Quest
+pwn.college{0O6wcctV2Kogj_NATrylx8EfpFS.dljM4QDL2EzNyYzW}
+making directories
+pwn.college{csT17fHudIJBhtN5EE6Ibn2IcP1.dFzM4QDL2EzNyYzW}
+finding files
+pwn.college{wfYm52GcIXpN9lx9k0Nb5i24KqA.dJzM4QDL2EzNyYzW}
+linking files
+pwn.college{snzngg8-Az3h1AXjao4dr5Bt9u0.dlTM1UDL2EzNyYzW}
+Learning From Documentation
+pwn.college{4spTeDqzDJP6KGpW4JKaGiO95Y8.dRjM5QDL2EzNyYzW}
+Learning Complex Usage
+pwn.college{4Eq4l3hKZQFyvGN4wnHhk5XTn24.dVjM5QDL2EzNyYzW}
+Reading Manuals
+pwn.college{U7rzE-bpXhPZpA8O1Op-yyI-Sjb.dRTM4QDL2EzNyYzW}
+Searching Manuals
+pwn.college{IMOQkxfLHtkin9TFMPp_D4ptXQ7.dVTM4QDL2EzNyYzW}
+Searching For Manuals
+pwn.college{gC_AsqenXqO2xrIGelUQ30mcuuk.dZTM4QDL2EzNyYzW}
+Helpful Programs
+pwn.college{ci8CXammwEKZVnsDQfBssRXt8JY.ddjM4QDL2EzNyYzW}
+Help for Builtins
+pwn.college{oTg-sJpWP0GHwgJhQWYYFQ2fI1E.dRTM5QDL2EzNyYzW}
+Matching with *
+pwn.college{gZB1_zV5WOmSGMKCicxaXjsSIUY.dFjM4QDL2EzNyYzW}
+Matching with ?
+pwn.college{wU7N1cVheifqOnOy0XGb0cFmY4U.dJjM4QDL2EzNyYzW}
+Matching with []
+pwn.college{sI63Pjt2k9RjBOqj1XpsyuNtd8t.dNjM4QDL2EzNyYzW}
+Matching paths with []
+pwn.college{U9XXVQ0P-SUSlY1D5Rh_-0lF91x.dRjM4QDL2EzNyYzW}
+Mixing globs
+pwn.college{Um8v3bDb-7qq1P7B05tZx1Uj411.dVjM4QDL2EzNyYzW}
+Exclusionary globbing
+pwn.college{AXFxLgjHYqKvdu_--yqwg89hxGF.dZjM4QDL2EzNyYzW}
+Redirecting output
+pwn.college{o5hxdynCJ6YzLpSK5q54SkRo74R.dRjN1QDL2EzNyYzW}
+Redirecting more output
+pwn.college{I_uDJyUEBup3LLLQHmHxsZqtWC6.dVjN1QDL2EzNyYzW}
+Appending output
+pwn.college{UDgr7vrCXIQ8YzMVpT6Zit-0xHW.ddDM5QDL2EzNyYzW}
+Redirecting errors
+pwn.college{siGhu0YiCqZc1XrN2ubf5LPEJe6.ddjN1QDL2EzNyYzW}
+Redirecting input
+pwn.college{oBM43HYJVN14lKYzPbBbp29ygsC.dBzN1QDL2EzNyYzW}
+Grepping stored results
+pwn.college{AiNt_eXVk3XRg-4VHV4SVR-7bcN.dhTM4QDL2EzNyYzW}
+Grepping live output
+pwn.college{kcmImjZYthOls5RDnjHvEr1b32E.dlTM4QDL2EzNyYzW}
+Grepping errors
+pwn.college{ozkzTKPn8Ca6u7AOT-lLvrlKe4D.dVDM5QDL2EzNyYzW}
+Duplicating piped data with tee
+pwn.college{0E7XxNoidUyXAWkU-N-sTYKPkRw.dFjM5QDL2EzNyYzW}
+Writing to multiple programs
+pwn.college{43RIf7nvnbhocGzmDDFR4P9pfEb.dBDO0UDL2EzNyYzW}
+Printing Variables
+pwn.college{guRf8vkMyXByFkkbcvg8RlO8v_y.ddTN1QDL2EzNyYzW}
+Setting Variables
+pwn.college{oFodiO1hlDxhWf8yxieCPeXvOxW.dlTN1QDL2EzNyYzW}
+Multi-word Variables
+pwn.college{czgCtwEFk8Pm5MP4IlcGJk-dYF9.dBjN1QDL2EzNyYzW}
+Exporting Variables
+pwn.college{MQM4KSPDLbUgaCZN6HRpNAOVj3V.dJjN1QDL2EzNyYzW}
+Printing Exported Variables
+pwn.college{MfN-CdrAGFPqCvCuGdWvTQGkCMz.dhTN1QDL2EzNyYzW}
+Storing Command Output
+pwn.college{MsCk-ctn_vMiB4Sv4QUvLxJ8iyN.dVzN0UDL2EzNyYzW}
+Reading Input
+pwn.college{oNnf64zbtr-O7fUyYf8rNqWXtM3.dhzN1QDL2EzNyYzW}
+Reading Files
+pwn.college{YuVLPRbHrAVH-IEQnCDdK5Skt_n.dBjM4QDL2EzNyYzW}
+Listing Processes
+pwn.college{4bC0U3kf8RqtoZW_MnX785YJljy.dhzM4QDL2EzNyYzW}
+Killing Processes
+pwn.college{MUfBuoG5htWKqS5X1eQptlk74pU.dJDN4QDL2EzNyYzW}
+Interruping Processes
+pwn.college{0scRTCTAagwjr96IdBwJpvHIfHD.dNDN4QDL2EzNyYzW}
+Suspending Processes
+pwn.college{YJPlI_s2h7sWGjKUo0CdROv-H4F.dVDN4QDL2EzNyYzW}
+Resuming Processes
+pwn.college{g5DIgNDi-L6WtRv_u_3B8nb070j.dZDN4QDL2EzNyYzW}
+Backgrounding Processes
+pwn.college{cFuLPOdn4NA3z0DPGWhGq13_5Vu.ddDN4QDL2EzNyYzW}
+Foregrounding Processses
+pwn.college{8AV4C7kncEwyfHv2clRVzSYJV0S.dhDN4QDL2EzNyYzW}
+Starting Backgrounded Processes
+pwn.college{kCEhZ6MhdcvUwLNsUarp8FDRxkM.dlDN4QDL2EzNyYzW}
+Changing File Ownership
+pwn.college{AArulIWimrydH-9Ludgl7Ncl8tR.dFTM2QDL2EzNyYzW}
+Groups and Files
+pwn.college{kfgqoINC9ylkdYEDYo2siU8hHrs.dFzNyUDL2EzNyYzW}
+Fun With Groups Names
+pwn.college{UY-8BlKMxd8EVT1HXZSS8GXWIes.dJzNyUDL2EzNyYzW}
+Changing Permissions
+pwn.college{cB6a3yO5Fxzxf8igC9ZvMvvIbl6.dNzNyUDL2EzNyYzW}
+Executables Files
+pwn.college{AymgWxoTRrhnseEtYl1hSsKFOFf.dJTM2QDL2EzNyYzW}
+Permission Tweaking Pratice
+pwn.college{wzdiwAaNOT1snlAy-zq0B3tUpgr.dBTM2QDL2EzNyYzW}
+Permission Setting Pratice
+pwn.college{Y-I42eL22Gh-4_23IyD7tVQNfM8.dNTM5QDL2EzNyYzW}
+The SUID Bit
+pwn.college{MIajjhWt3rInZBOyoi5uvQRv9Jm.dNTM2QDL2EzNyYzW}
+Becoming root with su
+pwn.college{0L_fAkYwnFhFpi8ZbxSYJTKCtNS.dVTN0UDL2EzNyYzW}
+Other users with su
+pwn.college{AMT-Axgnt5lCrLByqR6-XEJCjPG.dZTN0UDL2EzNyYzW}
+Cracking passwords
+pwn.college{oxjyDPut4OGsSoB2vCtnAOExj_v.ddTN0UDL2EzNyYzW}
+Using sudo
+pwn.college{8CUNdKKiurUMkKSn2xRr6b1zlHo.dhTN0UDL2EzNyYzW}
+Chaining with Semicolons
+pwn.college{Yy0AzB5F92Y8OMU6bj8Ycp5BcyJ.dVTN4QDL2EzNyYzW}
+Your First Shell Script
+pwn.college{4SvAUQsKaXJByURnzdoK1hioo9w.dFzN4QDL2EzNyYzW}
+Redirecting Script Output
+pwn.college{oW6X7SmvrJwQdjl6P93ZmzsrKwS.dhTM5QDL2EzNyYzW}
+Executable Shell Scripts
+pwn.college{k8IU7iDYJR7S5aC1faMXdlgsgXT.dRzNyUDL2EzNyYzW}
+The PATH Variable
+pwn.college{UP5mDijcQ8cSsLAQuDKtq1epMtc.dZzNwUDL2EzNyYzW}
+Setting PATH
+pwn.college{MABey37hjmR7REsOOgEqEGjtEnu.dVzNyUDL2EzNyYzW}
+Adding Commands
+pwn.college{cWxoco_RC4SRFXdL0kUF1bQFeCF.dZzNyUDL2EzNyYzW}
+Hijacking Commands
+pwn.college{0S7LH-MG1F02Y06pGIVvywDNMlY.ddzNyUDL2EzNyYzW}
+Process Exit Codes
+pwn.college{skBNclrLYVHg9KmD8IlLhIjTzQX.dljN4UDL2EzNyYzW}
+Split-piping stderr and stdout
+pwn.college{c1Cu0ZRcjBJt1cesfis0ddjldTS.dFDNwYDL2EzNyYzW}
+
+Optional Refresher
+Program Misuse: https://www.youtube.com/watch?v=PPwDiXxZpZ4
+Level1
+pwn.college{cftCjPtA4359oKnEprkYjOZg2Ma.01M0EDL2EzNyYzW}
+Level2
+pwn.college{YjrqaSHQqRHc4YKqb-rkbjyoa9z.0FN0EDL2EzNyYzW}
+Level3
+pwn.college{8O2yGplw8ah9OWk8HLqhzTJ8A4F.0VN0EDL2EzNyYzW}
+Level4
+pwn.college{QsbsM8osIAh8X7mVBFbfmBQr1iH.0lN0EDL2EzNyYzW}
+Level5
+pwn.college{UdfWVNsyc81Yv8xnku2ABZjdkJb.01N0EDL2EzNyYzW}
+Level6
+pwn.college{o5NxlNvaCMZ9GBzwVi5dah6gwJ-.0FO0EDL2EzNyYzW}
+Level7
+pwn.college{IgKPeQWXqmlDwVdbM0PkMWWXPmW.0VO0EDL2EzNyYzW}
+Level8
+pwn.college{8cgfR3SSdjGLrqBOEIYwowFq5xC.0FM1EDL2EzNyYzW}
+Level9
+pwn.college{klz9rKzVKC7xBZB79LTCZ1zm6_k.0VM1EDL2EzNyYzW}
+Level10
+pwn.college{MLe6h2407frYElQW86qX79jueRB.0lM1EDL2EzNyYzW}
+Level11
+pwn.college{4dp_7PSfPzOxy8i-tDpNo0uEt6f.01M1EDL2EzNyYzW}
+Level12
+pwn.college{kLVQ7atZodI1onIy5tsgx2nHWKf.0FN1EDL2EzNyYzW}
+Level13
+pwn.college{csRQPogGeXP0d1W-R82H-BBYvno.0VN1EDL2EzNyYzW}
+Level14
+pwn.college{o1JO9uH2zh6Fs1qWhDb-YbGRHHO.0lN1EDL2EzNyYzW}
+Level15
+pwn.college{09hztX8AgXsSkyz57QIrbc-gT_Q.01N1EDL2EzNyYzW}
+Level16
+pwn.college{AlC1JUzdUMGkg7XAXfGSFsOwF82.0FO1EDL2EzNyYzW}
+Level17
+pwn.college{UeiYGz4CfW7SuaXGd7PVS-AfoyL.0VO1EDL2EzNyYzW}
+Level18
+pwn.college{oGBR5g1x_wrdHh1oHxMOYvcf-3c.0FM2EDL2EzNyYzW}
+Level19
+pwn.college{YCsPfW4gkhRWdc_zL8vkmoB7whm.0VM2EDL2EzNyYzW}
+Level20
+pwn.college{gdjveqjDWs2b1qCCgc8BfIC-WBf.0lM2EDL2EzNyYzW}
+Level21
+pwn.college{kGvohcJeLKDNNKzReAN7EarnsIS.01M2EDL2EzNyYzW}
+Level22
+pwn.college{svmldVWZHnC4lnaxbhJbv5H0Nyv.0FN2EDL2EzNyYzW}
+Level23 *
+pwn.college{MWKqX7mUxF4KRRcTVZWAO-xYkrI.0VN2EDL2EzNyYzW}
+Level24
+pwn.college{ARqbcU-XtRbcM3IHbZHE5fooz9S.0lN2EDL2EzNyYzW}
+Level25 *
+pwn.college{08gHEyZQ1XGTPQvXO6449bvILFU.01N2EDL2EzNyYzW}
+
+Assembly Crash Course:
+https://www.cs.virginia.edu/~evans/cs216/guides/x86.html
+https://github.com/w3th4nds/pwn-college/tree/main/Dojos
+https://courses.cs.washington.edu/courses/cse378/10au/sections/Section1_recap.pdf
+level1
+pwn.college{4Sm3zdaNSEkRLshaQdz8kfrnPDm.0FN5EDL2EzNyYzW}
+level2
+pwn.college{YTxMYG-x2-DFJjyDYN6W6N7g91X.dBTM4MDL2EzNyYzW}
+level3
+pwn.college{gbk95lANzW4KtjSUPZo40tz3PyX.0VN5EDL2EzNyYzW}
+level4
+pwn.college{At0zXJjewboGYFsYQ-9AOPFo5iH.0lN5EDL2EzNyYzW}
+level5
+pwn.college{QWXsVm6A2c9lvPZGCQEOSsOEr-_.01N5EDL2EzNyYzW}
+level6
+pwn.college{EkBJk7oQjOW-8bQwh9HMZqfPStP.0FO5EDL2EzNyYzW}
+level7
+pwn.college{QF6Y5dGClaHddP7ZlKan9y7iGDy.dFTM4MDL2EzNyYzW}
+level8
+pwn.college{sFqufQy7LB9TF8_ngD7-rmrsW9e.0VO5EDL2EzNyYzW}
+level9
+pwn.college{0hjqgPjurmdl22VyYAE9jMM6uYV.0FMwIDL2EzNyYzW}
+level10
+pwn.college{4pHkYthdLZ5LZMPy5bol2fod3Wi.0VMwIDL2EzNyYzW}
+level11
+pwn.college{UWrg5CSQcR3l1qTsMzElN-xiE2N.0lMwIDL2EzNyYzW}
+level12
+pwn.college{cV8O0oeBbpTn_i8sWoLgHiQ7rC1.dJTM4MDL2EzNyYzW}
+level13
+pwn.college{8_gui1Em5KxUhJndMZpu2q0OQus.dNTM4MDL2EzNyYzW}
+level14
+pwn.college{obKy4UmYIZqREJraoRotyP9rV4Y.01MwIDL2EzNyYzW}
+level15
+pwn.college{Q9LU5PX3-H45gfg6BXlt4p80dV_.dRTM4MDL2EzNyYzW}
+level16
+pwn.college{UiY2j5zqKcALWwXOi1Fa0VBBg-V.0FNwIDL2EzNyYzW}
+level17
+pwn.college{oj7IosTUcLd0DYG0drSkDUyytoD.0VNwIDL2EzNyYzW}
+level18
+pwn.college{U-mQMDp43iMRff7LMMQMmFyQc72.0lNwIDL2EzNyYzW}
+level19
+pwn.college{oFTRSmMZWadoEpCq9Ga8lUTPfjg.01NwIDL2EzNyYzW}
+level20
+pwn.college{gZhpEx5E5LFSe_pw3qvtggYV5gq.0FOwIDL2EzNyYzW}
+level21
+pwn.college{UjDK5kdJ7dGrnGgolQHY8_B_MZV.0VOwIDL2EzNyYzW}
+level22
+pwn.college{EslpMe6biNqKPdNbxoZhDwToCu-.dVTM4MDL2EzNyYzW}
+level23
+pwn.college{wI5AQWLzGDrbHoJH8fQZ7u_G6tE.dZTM4MDL2EzNyYzW}
+level24
+pwn.college{04mVrJnPLVT0VG6SfwQufohxG5m.0FMxIDL2EzNyYzW}
+level25
+pwn.college{kmcUCjaXgt_QapNwXZ-5lWqB6ow.0VMxIDL2EzNyYzW}
+level26
+pwn.college{s-jytcpfYj6t1ZBD9IzsyxOurdD.0lMxIDL2EzNyYzW}
+level27
+pwn.college{QoIh6PJIpf21nMvS9k8yDOfDLT0.01MxIDL2EzNyYzW}
+level28
+pwn.college{c_SyPmvlqRyoGkUoUe19BdUB6-P.0FNxIDL2EzNyYzW}
+level29*
+pwn.college{wTzGKZNINzw3h4igQtg0os8esTK.0VNxIDL2EzNyYzW}
+level30
+pwn.college{IRbsg0286dUDy6MHb0thyrbqK2u.0lNxIDL2EzNyYzW}
+
+Debugging Refresher
+level1
+pwn.college{4ajN95doe0dZBqZTjg2jMUolh_p.0FN0IDL2EzNyYzW}
+level2
+pwn.college{QFOYLcvHk_W9yGtKNmuWKtgfe4q.0VN0IDL2EzNyYzW}
+level3
+pwn.college{8G7rxO0hF67mys_5BVxcO3Apw6C.0lN0IDL2EzNyYzW}
+level4
+pwn.college{g5G1_1DjfrMtTEG-kTnE6lJL_wE.01N0IDL2EzNyYzW}
+level5
+pwn.college{g1M7FffjR6Kbl0w0VHt7eTePMiy.0FO0IDL2EzNyYzW}
+
+Dynamic Allocator Misuse
+level1.0
+pwn.college{YJiFWw9YsJ8wdootnkrHbh66vAH.0VM3MDL2EzNyYzW}

