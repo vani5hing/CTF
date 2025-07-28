@@ -1,0 +1,10 @@
+version: '3.2'
+
+services:
+  pwn_chall2:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "9002:9001"
+    volumes:
+      - ./flag:/home/user2/flag:ro

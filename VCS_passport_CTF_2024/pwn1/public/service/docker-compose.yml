@@ -1,0 +1,10 @@
+version: '3.2'
+
+services:
+  warmup:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "9001:9001"
+    volumes:
+      - ./flag:/challenge/flag:ro

@@ -1,0 +1,9 @@
+version: '3.5'
+
+services:
+    copy-in-out-editor:
+        build:
+            context: ./
+            dockerfile: ./Dockerfile
+        ports:
+            - "31313:31313"
