@@ -1,0 +1,8 @@
+version: '1'
+services:
+  cses:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "12132:5000"
