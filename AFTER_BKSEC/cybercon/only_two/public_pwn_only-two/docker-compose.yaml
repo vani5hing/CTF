@@ -1,0 +1,13 @@
+services:
+  pwn_only-two:
+    build: .
+    image: forez/pwn-only-two:latest
+    restart: unless-stopped
+    ports:
+      - "${DYNAMIC_PORT:-1000}:1000"
+    networks:
+      - pwn_only-two_network
+
+networks:
+  pwn_only-two_network:
+    driver: bridge

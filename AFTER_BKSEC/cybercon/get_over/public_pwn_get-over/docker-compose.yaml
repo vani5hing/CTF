@@ -1,0 +1,13 @@
+services:
+  pwn_get-over:
+    build: .
+    image: forez/web-get-over:latest
+    restart: unless-stopped
+    ports:
+      - "${DYNAMIC_PORT:-1000}:1000"
+    networks:
+      - pwn_get-over_network
+
+networks:
+  pwn_get-over_network:
+    driver: bridge
